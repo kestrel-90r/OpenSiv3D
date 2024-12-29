@@ -1738,6 +1738,9 @@
     <Filter Include="include\Siv3D\OpenAI">
       <UniqueIdentifier>{37ac6af4-6c9f-4772-9dee-c6f5ebe74b61}</UniqueIdentifier>
     </Filter>
+    <Filter Include="src\Siv3D\UDPClient">
+      <UniqueIdentifier>{21716d19-141d-4b06-880c-3f0fa0b9f170}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Siv3D\include\Siv3D.hpp">
@@ -7842,6 +7845,9 @@
     <ClInclude Include="..\Siv3D\src\ThirdParty\lunasvg\parser.h">
       <Filter>src\ThirdParty\lunasvg</Filter>
     </ClInclude>
+    <ClInclude Include="..\Siv3D\Include\Siv3D\UDPClient.hpp" />
+    <ClInclude Include="..\Siv3D\src\Siv3D\UDPClient\UDPClientDetail.hpp" />
+    <ClInclude Include="..\Siv3D\src\Siv3D\UDPClient\UDPSession.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\Siv3D\src\Siv3D\Common\Siv3DEngine.cpp">
@@ -11284,6 +11290,13 @@
     </ClCompile>
     <ClCompile Include="..\Siv3D\src\ThirdParty\lunasvg\parser.cpp">
       <Filter>src\ThirdParty\lunasvg</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Siv3D\src\Siv3D\UDPClient\SivUDPClient.cpp" />
+    <ClCompile Include="..\Siv3D\src\Siv3D\UDPClient\UDPClientDetail.cpp">
+      <Filter>src\Siv3D\UDPClient</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Siv3D\src\Siv3D\UDPClient\UDPSession.cpp">
+      <Filter>src\Siv3D\UDPClient</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

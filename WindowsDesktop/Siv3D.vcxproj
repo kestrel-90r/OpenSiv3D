@@ -718,6 +718,9 @@
     <ClInclude Include="..\Siv3D\include\Siv3D\OrderedTable.hpp" />
     <ClInclude Include="..\Siv3D\include\Siv3D\TCPClient.hpp" />
     <ClInclude Include="..\Siv3D\include\Siv3D\TCPError.hpp" />
+
+    <ClInclude Include="..\Siv3D\Include\Siv3D\UDPClient.hpp" />
+
     <ClInclude Include="..\Siv3D\include\Siv3D\TCPServer.hpp" />
     <ClInclude Include="..\Siv3D\include\Siv3D\TextAreaEditState.hpp" />
     <ClInclude Include="..\Siv3D\include\Siv3D\TextEditState.hpp" />
@@ -1247,6 +1250,10 @@
     <ClInclude Include="..\Siv3D\src\Siv3D\System\SystemMisc.hpp" />
     <ClInclude Include="..\Siv3D\src\Siv3D\TCPClient\TCPClientDetail.hpp" />
     <ClInclude Include="..\Siv3D\src\Siv3D\TCPServer\TCPServerDetail.hpp" />
+
+	<ClInclude Include="..\Siv3D\src\Siv3D\UDPClient\UDPClientDetail.hpp" />
+	<ClInclude Include="..\Siv3D\src\Siv3D\UDPClient\UDPSession.hpp" />
+
     <ClInclude Include="..\Siv3D\src\Siv3D\TextInput\ITextInput.hpp" />
     <ClInclude Include="..\Siv3D\src\Siv3D\TextReader\TextReaderDetail.hpp" />
     <ClInclude Include="..\Siv3D\src\Siv3D\TextToSpeech\ITextToSpeech.hpp" />
@@ -2693,6 +2700,11 @@
     <ClCompile Include="..\Siv3D\src\Siv3D\TCPClient\TCPClientDetail.cpp" />
     <ClCompile Include="..\Siv3D\src\Siv3D\TCPServer\SivTCPServer.cpp" />
     <ClCompile Include="..\Siv3D\src\Siv3D\TCPServer\TCPServerDetail.cpp" />
+
+    <ClCompile Include="..\Siv3D\src\Siv3D\UDPClient\SivUDPClient.cpp" />
+    <ClCompile Include="..\Siv3D\src\Siv3D\UDPClient\UDPClientDetail.cpp" />
+    <ClCompile Include="..\Siv3D\src\Siv3D\UDPClient\UDPSession.cpp" />
+
     <ClCompile Include="..\Siv3D\src\Siv3D\TextAreaEditState\SivTextAreaEditState.cpp" />
     <ClCompile Include="..\Siv3D\src\Siv3D\TextEncoding\SivTextEncoding.cpp" />
     <ClCompile Include="..\Siv3D\src\Siv3D\TextInput\SivTextInput.cpp" />
