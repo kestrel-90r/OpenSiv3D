@@ -1133,7 +1133,8 @@ namespace s3d
 		using MultiCwOpenPolygon = boost::geometry::model::multi_polygon<CwOpenPolygon>;
 		boost::geometry::correct(polygon);
 		MultiCwOpenPolygon solvedPolygons;
-		boost::geometry::dissolve(polygon, solvedPolygons);
+//		boost::geometry::dissolve(polygon, solvedPolygons);
+		boost::geometry::union_(polygon, polygon, solvedPolygons);
 
 		Array<Polygon> results;
 

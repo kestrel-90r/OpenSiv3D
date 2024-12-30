@@ -12,7 +12,7 @@
 # pragma once
 # include "Platform.hpp"
 
-# define SIMDE_ENABLE_NATIVE_ALIASES
+//# define SIMDE_ENABLE_NATIVE_ALIASES
 
 # if !SIV3D_INTRINSIC(SSE)
 
