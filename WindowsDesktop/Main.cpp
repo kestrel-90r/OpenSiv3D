@@ -48,11 +48,11 @@ void Main()
 			Array<Byte> buffer(size);
 
 			if (receiver.read(buffer.data(), size))
-		{
+		    {
 				const std::string rxtext(reinterpret_cast<const char*>(buffer.data()), buffer.size());
 				const String received = Unicode::FromUTF8(rxtext);
 				Print << U"Received: " << received;
-		}
+		    }
 		}
 
 	}
