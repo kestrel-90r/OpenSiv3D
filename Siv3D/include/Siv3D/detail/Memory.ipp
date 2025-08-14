@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -29,8 +30,7 @@ namespace s3d
 			::_aligned_free(p);
 		}
 
-	# elif SIV3D_PLATFORM(MACOS) || SIV3D_PLATFORM(LINUX) || SIV3D_PLATFORM(WEB)
-
+	# elif SIV3D_PLATFORM(MACOS) || SIV3D_PLATFORM(LINUX) || SIV3D_PLATFORM(WEB) || SIV3D_PLATFORM(ANDROID)
 		template <size_t Alignment>
 		[[nodiscard]]
 		inline void* AlignedMalloc(size_t size) noexcept

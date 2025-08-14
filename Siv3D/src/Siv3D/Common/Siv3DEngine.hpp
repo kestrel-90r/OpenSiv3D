@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -11,6 +12,7 @@
 
 # pragma once
 # include <tuple>
+# include <Siv3D/Platform.hpp>
 # include "Siv3DComponent.hpp"
 
 namespace s3d
@@ -60,7 +62,9 @@ namespace s3d
 	class ISiv3DPrimitiveMesh;
 	class ISiv3DAsset;
 	class ISiv3DEffect;
+#if !SIV3D_PLATFORM(ANDROID)
 	class ISiv3DScript;
+#endif
 	class ISiv3DAddon;
 
 	class Siv3DEngine
@@ -115,7 +119,9 @@ namespace s3d
 			Siv3DComponent<ISiv3DPrimitiveMesh>,
 			Siv3DComponent<ISiv3DAsset>,
 			Siv3DComponent<ISiv3DEffect>,
+#if !SIV3D_PLATFORM(ANDROID)
 			Siv3DComponent<ISiv3DScript>,
+#endif
 			Siv3DComponent<ISiv3DAddon>> m_components;
 
 	public:

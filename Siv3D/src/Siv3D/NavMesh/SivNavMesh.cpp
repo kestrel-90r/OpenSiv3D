@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -101,6 +102,35 @@ namespace s3d
 		return pImpl->build(vertices, indices, areaIDs, config);
 	}
 
+# if SIV3D_PLATFORM(ANDROID)
+	Array<Vec2> NavMesh::query(const Vec2& start, const Vec2& end, const Array<std::pair<int32, double>>& areaCosts) const
+	{
+		Array<Vec2> dst;
+		
+		pImpl->query(start, end, areaCosts, dst);
+		
+		return dst;
+	}
+
+	void NavMesh::query(const Vec2& start, const Vec2& end, Array<Vec2>& dst, const Array<std::pair<int32, double>>& areaCosts) const
+	{
+		pImpl->query(start, end, areaCosts, dst);
+	}
+
+	Array<Vec3> NavMesh::query(const Vec3& start, const Vec3& end, const Array<std::pair<int32, double>>& areaCosts) const
+	{
+		Array<Vec3> dst;
+
+		pImpl->query(start, end, areaCosts, dst);
+
+		return dst;
+	}
+
+	void NavMesh::query(const Vec3& start, const Vec3& end, Array<Vec3>& dst, const Array<std::pair<int32, double>>& areaCosts) const
+	{
+		pImpl->query(start, end, areaCosts, dst);
+	}
+#else
 	Array<Vec2> NavMesh::query(const Vec2& start, const Vec2& end, const Array<std::pair<int32, double>>& areaCosts) const
 	{
 		return pImpl->query(start, end, areaCosts);
@@ -110,4 +140,6 @@ namespace s3d
 	{
 		return pImpl->query(start, end, areaCosts);
 	}
+#endif
+
 }

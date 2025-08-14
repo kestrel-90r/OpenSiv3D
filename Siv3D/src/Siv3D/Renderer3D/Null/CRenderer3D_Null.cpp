@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -26,6 +27,10 @@ namespace s3d
 	{
 		LOG_SCOPED_TRACE(U"CRenderer3D_Null::init()");
 	}
+    void CRenderer3D_Null::deinit()
+    {
+        LOG_SCOPED_TRACE(U"CRenderer3D_Null::deinit()");
+    }
 
 	const Renderer3DStat& CRenderer3D_Null::getStat() const
 	{

@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -500,8 +501,11 @@ namespace s3d
 	template <class Fty, std::enable_if_t<std::is_invocable_v<Fty, Type>>*>
 	inline auto Array<Type, Allocator>::operator >>(Fty f) const
 	{
+# if SIV3D_PLATFORM(ANDROID)
+        using Ret = std::remove_reference_t<std::remove_cv_t<decltype(f((*this)[0]))>>;
+# else
 		using Ret = std::remove_cvref_t<decltype(f((*this)[0]))>;
-
+# endif
 		if constexpr (std::is_same_v<Ret, void>)
 		{
 			each(f);
@@ -550,28 +554,48 @@ namespace s3d
 	SIV3D_CONCEPT_URBG_
 	inline typename Array<Type, Allocator>::value_type& Array<Type, Allocator>::choice(URBG&& rbg)
 	{
-		if (empty())
+# if SIV3D_PLATFORM(ANDROID)
+		const size_t size = m_container.size();
+
+		if (size == 0)
 		{
 			throw std::out_of_range("Array::choice(): Array is empty");
 		}
 
+		return m_container[RandomClosedOpen<size_t>(0, size, std::forward<URBG>(rbg))];
+#else
+		if (empty())
+		{
+			throw std::out_of_range("Array::choice(): Array is empty");
+		}
 		const size_t index = UniformIntDistribution<size_t>(0, size() - 1)(rbg);
-
 		return operator[](index);
+#endif
+
 	}
 
 	template <class Type, class Allocator>
 	SIV3D_CONCEPT_URBG_
 	inline const typename Array<Type, Allocator>::value_type& Array<Type, Allocator>::choice(URBG&& rbg) const
 	{
-		if (empty())
+# if SIV3D_PLATFORM(ANDROID)
+		const size_t size = m_container.size();
+
+		if (size == 0)
 		{
 			throw std::out_of_range("Array::choice(): Array is empty");
 		}
 
+		return m_container[RandomClosedOpen<size_t>(0, size, std::forward<URBG>(rbg))];
+#else
+		if (empty())
+		{
+			throw std::out_of_range("Array::choice(): Array is empty");
+		}
 		const size_t index = UniformIntDistribution<size_t>(0, size() - 1)(rbg);
-
 		return operator[](index);
+
+#endif
 	}
 
 	template <class Type, class Allocator>
@@ -802,7 +826,11 @@ namespace s3d
 	template <class Fty, std::enable_if_t<std::is_invocable_v<Fty, Type>>*>
 	inline auto Array<Type, Allocator>::map(Fty f) const
 	{
+# if SIV3D_PLATFORM(ANDROID)
+        Array<std::remove_reference_t<std::remove_cv_t<decltype(f((*this)[0]))>>> new_array(Arg::reserve = size());
+# else
 		Array<std::remove_cvref_t<decltype(f((*this)[0]))>> new_array(Arg::reserve = size());
+# endif
 
 		for (const auto& v : *this)
 		{
@@ -1658,7 +1686,11 @@ namespace s3d
 	template <class Fty, std::enable_if_t<std::is_invocable_v<Fty, Type>>*>
 	inline auto Array<Type, Allocator>::parallel_map(Fty f) const
 	{
+# if SIV3D_PLATFORM(ANDROID)
+        using Ret = std::remove_reference_t<std::remove_cv_t<decltype(f((*this)[0]))>>;
+# else
 		using Ret = std::remove_cvref_t<decltype(f((*this)[0]))>;
+# endif
 
 		if (isEmpty())
 		{

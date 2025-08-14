@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -650,7 +651,11 @@ namespace s3d
 	template <class Fty, std::enable_if_t<std::is_invocable_v<Fty, Type>>*>
 	inline auto Grid<Type, Allocator>::operator >>(Fty f) const
 	{
+# if SIV3D_PLATFORM(ANDROID)
+        using ResultType = std::remove_reference_t<std::remove_cv_t<decltype(f((*this)[0]))>>;
+# else
 		using ResultType = std::remove_cvref_t<decltype(f(m_data[0]))>;
+# endif
 
 		if constexpr (std::is_same_v<ResultType, void>)
 		{
@@ -692,28 +697,48 @@ namespace s3d
 	SIV3D_CONCEPT_URBG_
 	inline typename Grid<Type, Allocator>::value_type& Grid<Type, Allocator>::choice(URBG&& rbg)
 	{
+# if SIV3D_PLATFORM(ANDROID)
+		const size_t size = m_data.size();
+
+		if (size == 0)
+		{
+			throw std::out_of_range{ "Grid::choice(): Grid is empty" };
+		}
+
+		return m_data[RandomClosedOpen<size_t>(0, size, std::forward<URBG>(rbg))];
+#else
 		if (empty())
 		{
 			throw std::out_of_range("Grid::choice(): Grid is empty");
 		}
-
 		const size_t index = UniformIntDistribution<size_t>(0, size() - 1)(rbg);
-
 		return operator[](index);
+
+#endif
+
 	}
 
 	template <class Type, class Allocator>
 	SIV3D_CONCEPT_URBG_
 	inline const typename Grid<Type, Allocator>::value_type& Grid<Type, Allocator>::choice(URBG&& rbg) const
 	{
+# if SIV3D_PLATFORM(ANDROID)
+		const size_t size = m_data.size();
+
+		if (size == 0)
+		{
+			throw std::out_of_range{ "Grid::choice(): Grid is empty" };
+		}
+
+		return m_data[RandomClosedOpen<size_t>(0, size, std::forward<URBG>(rbg))];
+#else
 		if (empty())
 		{
 			throw std::out_of_range("Grid::choice(): Grid is empty");
 		}
-
 		const size_t index = UniformIntDistribution<size_t>(0, size() - 1)(rbg);
-
 		return operator[](index);
+#endif
 	}
 
 	template <class Type, class Allocator>
@@ -860,7 +885,11 @@ namespace s3d
 	template <class Fty, std::enable_if_t<std::is_invocable_v<Fty, Type>>*>
 	inline auto Grid<Type, Allocator>::map(Fty f) const
 	{
+# if SIV3D_PLATFORM(ANDROID)
+        using ResultType = std::remove_reference_t<std::remove_cv_t<decltype(f((*this)[0]))>>;
+# else
 		using ResultType = std::remove_cvref_t<decltype(f(m_data[0]))>;
+# endif
 
 		Array<ResultType> new_grid(Arg::reserve = (m_width * m_height));
 

@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -31,6 +32,13 @@ namespace s3d
 
 		m_emptyTexture = std::make_unique<Texture>();
 	}
+    
+    # if SIV3D_PLATFORM(ANDROID)
+    void CRenderer2D_Null::deinit()
+    {
+        LOG_SCOPED_TRACE(U"CRenderer2D_Null::deinit()");
+    }
+	#endif
 
 	void CRenderer2D_Null::update()
 	{
@@ -113,6 +121,11 @@ namespace s3d
 	}
 
 	void CRenderer2D_Null::addRoundRect(const FloatRect&, const float, const float, const float, const Float4&)
+	{
+		// do nothing
+	}
+
+	void CRenderer2D_Null::addRoundRectFrame(const RoundRect&, const RoundRect&, const Float4&)
 	{
 		// do nothing
 	}

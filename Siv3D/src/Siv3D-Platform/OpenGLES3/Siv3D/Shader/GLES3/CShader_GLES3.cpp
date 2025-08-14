@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -84,6 +85,45 @@ namespace s3d
 		}
 	}
 
+	void CShader_GLES3::deinit()
+	{
+		LOG_SCOPED_TRACE(U"CShader_GLES3::deinit()");
+		
+		try {
+			m_currentVS = VertexShader::IDType::NullAsset();
+			m_currentPS = PixelShader::IDType::NullAsset();
+			
+			m_pipeline = ShaderPipeline{};
+			m_enginePSs.clear();
+			m_pixelShaders.destroy();
+			m_vertexShaders.destroy();
+			
+			m_pixelShaders.reset();
+			m_vertexShaders.reset();
+
+			GLint currentProgram = 0;
+			glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+
+			if (currentProgram != 0) 
+			{
+				glUseProgram(0);
+				LOG_INFO(U"Unbound current GL program");
+			}
+			
+			glReleaseShaderCompiler();
+		}
+
+		catch (const std::exception& e) 
+		{
+			LOG_ERROR(U"CShader_GLES3::deinit() failed with exception");
+		}
+
+		catch (...) 
+		{
+			LOG_ERROR(U"CShader_GLES3::deinit() failed with unknown exception");
+		}
+	}
+
 	VertexShader::IDType CShader_GLES3::createVSFromFile(const FilePathView path, const StringView entryPoint, const Array<ConstantBufferBinding>& bindings)
 	{
 		TextReader reader{ path };
@@ -158,7 +198,7 @@ namespace s3d
 		m_currentPS = handleID;
 	}
 
-	const Blob& CShader_GLES3::getBinaryVS(const VertexShader::IDType handleID)
+    const Blob& CShader_GLES3::getBinaryVS(const VertexShader::IDType handleID)
 	{
 		return m_vertexShaders[handleID]->getBinary();
 	}
@@ -187,11 +227,21 @@ namespace s3d
 
 	void CShader_GLES3::usePipeline()
 	{
-		auto vertexShader = m_vertexShaders[m_currentVS]->getShader();
-		auto pixelShader = m_pixelShaders[m_currentPS]->getShader();
+		if (m_currentPS == PixelShader::IDType::NullAsset() || !m_pixelShaders[m_currentPS] )
+		{
+			return;
+		}
+
+	    auto vertexShader = m_vertexShaders[m_currentVS]->getShader();
+	    auto pixelShader = m_pixelShaders[m_currentPS]->getShader();
 
 		auto state = m_pipeline.linkShaders(vertexShader, pixelShader);
 		auto program = state.shaderProgram;
+		
+		if (program == 0)
+		{
+			return;
+		}
 
 		if (not state.cacheHit && program)
 		{
@@ -203,5 +253,6 @@ namespace s3d
 
 		m_vertexShaders[m_currentVS]->setVSSamplerUniforms();
 		m_pixelShaders[m_currentPS]->setPSSamplerUniforms();
+
 	}
 }

@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -179,6 +180,34 @@ namespace s3d
 			}
 		}
 	}
+
+# if SIV3D_PLATFORM(ANDROID)
+    void CFont::deinit()
+    {
+        LOG_SCOPED_TRACE(U"CFont::deinit()");
+
+        m_defaultIcons.clear();
+        m_defaultEmoji.reset();
+        m_shader.reset();
+
+        try
+        {
+            m_fonts.destroy();
+            m_fonts.reset();
+            LOG_TRACE(U"CFont::deinit(): Font ID counter reset");
+        }
+        catch (...)
+        {
+            LOG_ERROR(U"CFont::deinit(): Exception during font cleanup");
+        }
+
+        if (m_freeType)
+        {
+            FT_Done_FreeType(m_freeType);
+            m_freeType = nullptr;
+        }
+    }
+#endif
 
 	size_t CFont::getFontCount() const
 	{

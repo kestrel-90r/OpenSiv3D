@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -24,6 +25,10 @@ namespace s3d
 		~CRenderer2D_Null() override;
 
 		void init() override;
+
+        # if SIV3D_PLATFORM(ANDROID)
+        void deinit() override;
+		#endif
 
 		void update() override;
 
@@ -58,6 +63,8 @@ namespace s3d
 		void addQuad(const FloatQuad& quad, const Float4(&colors)[4]) override;
 
 		void addRoundRect(const FloatRect& rect, float w, float h, float r, const Float4& color) override;
+
+		void addRoundRectFrame(const RoundRect& outer, const RoundRect& inner, const Float4& color) override;
 
 		void addLineString(const LineStyle& style, const Vec2* points, size_t size, const Optional<Float2>& offset, float thickness, bool inner, const Float4& color, CloseRing closeRing) override;
 
@@ -158,7 +165,6 @@ namespace s3d
 		void setConstantBuffer(ShaderStage stage, uint32 slot, const ConstantBufferBase& buffer, const float* data, uint32 num_vectors) override;
 	
 		const Texture& getBoxShadowTexture() const noexcept override;
-
 
 		void flush() override;
 

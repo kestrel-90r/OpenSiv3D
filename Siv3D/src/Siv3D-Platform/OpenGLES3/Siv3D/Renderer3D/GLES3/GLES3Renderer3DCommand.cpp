@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -873,6 +874,11 @@ namespace s3d
 
 	const VertexShader::IDType& GLES3Renderer3DCommandManager::getVS(const uint32 index) const
 	{
+		if (index >= m_VSs.size())
+		{
+			static const VertexShader::IDType nullAsset = VertexShader::IDType::NullAsset();
+			return nullAsset;
+		}
 		return m_VSs[index];
 	}
 
@@ -937,6 +943,11 @@ namespace s3d
 
 	const PixelShader::IDType& GLES3Renderer3DCommandManager::getPS(const uint32 index) const
 	{
+		if (index >= m_PSs.size())
+		{
+			static const PixelShader::IDType nullAsset = PixelShader::IDType::NullAsset();
+			return nullAsset;
+		}
 		return m_PSs[index];
 	}
 

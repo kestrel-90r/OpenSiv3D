@@ -98,10 +98,10 @@ namespace s3d
 		[[nodiscard]]
 		std::u16string UTF8ToUTF16(std::string_view s);
 
-		[[nodiscard]]
 		/// @brief UTF-8 文字列を UTF-32 文字列に変換します。
 		/// @param s UTF-8 文字列
 		/// @return 変換された文字列
+		[[nodiscard]]
 		std::u32string UTF8ToUTF32(std::string_view s);
 
 		/// @brief UTF-16 文字列を UTF-8 文字列に変換します。
@@ -139,6 +139,7 @@ namespace s3d
 		/// @return 下位サロゲートである場合 true, それ以外の場合は false
 		[[nodiscard]]
 		inline constexpr bool IsLowSurrogate(const char16 ch) noexcept;
+
 	}
 }
 

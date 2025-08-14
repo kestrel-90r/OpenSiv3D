@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -73,6 +74,8 @@ namespace s3d
 		~CRenderer3D_GLES3() override;
 
 		void init() override;
+		
+        void deinit() override;
 
 		const Renderer3DStat& getStat() const override;
 

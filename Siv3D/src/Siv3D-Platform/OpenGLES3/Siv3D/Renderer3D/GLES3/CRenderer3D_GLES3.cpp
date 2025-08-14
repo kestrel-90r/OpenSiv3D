@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -22,11 +23,11 @@
 # include <Siv3D/Mesh/GLES3/CMesh_GLES3.hpp>
 # include <Siv3D/ConstantBuffer/GLES3/ConstantBufferDetail_GLES3.hpp>
 
-/*/
+#if 0
 #	define LOG_COMMAND(...) LOG_TRACE(__VA_ARGS__)
-/*/
+#else
 #	define LOG_COMMAND(...) ((void)0)
-//*/
+#endif
 
 namespace s3d
 {
@@ -79,7 +80,35 @@ namespace s3d
 		{
 			throw EngineError{ U"GLES3Line3DBatch::init() failed" };
 		}
+
+	    m_vsPerViewConstants.base().destroy();
+	    m_vsPerObjectConstants.base().destroy();
+	    m_vsPerMaterialConstants.base().destroy();
+	    m_psPerFrameConstants.base().destroy();
+	    m_psPerViewConstants.base().destroy();
+	    m_psPerMaterialConstants.base().destroy();
+
 	}
+
+    void CRenderer3D_GLES3::deinit()
+    {
+        LOG_SCOPED_TRACE(U"CRenderer3D_GLES3::deinit()");
+
+        flush();
+
+        m_commandManager.reset();
+        m_standardVS.reset();
+        m_standardPS.reset();
+        m_line3DBatch.reset();
+
+        m_standardPS = nullptr;
+        m_standardVS = nullptr;
+
+        pRenderer = nullptr;
+        pShader   = nullptr;
+        pTexture  = nullptr;
+        pMesh     = nullptr;
+    }
 
 	const Renderer3DStat& CRenderer3D_GLES3::getStat() const
 	{
@@ -762,16 +791,16 @@ namespace s3d
 				{
 					const uint32 slot = (FromEnum(command.type) - FromEnum(GLES3Renderer3DCommandType::VSTexture0));
 					const auto& textureID = m_commandManager.getVSTexture(slot, command.index);
+					const uint32 textureUnit = Shader::Internal::MakeSamplerSlot(ShaderStage::Vertex, slot);
+					::glActiveTexture(GL_TEXTURE0 + textureUnit);
 
 					if (textureID.isInvalid())
 					{
-						::glActiveTexture(GL_TEXTURE0 + Shader::Internal::MakeSamplerSlot(ShaderStage::Vertex, slot));
 						::glBindTexture(GL_TEXTURE_2D, 0);
 						LOG_COMMAND(U"VSTexture{}[{}]: null"_fmt(slot, command.index));
 					}
 					else
 					{
-						::glActiveTexture(GL_TEXTURE0 + Shader::Internal::MakeSamplerSlot(ShaderStage::Vertex, slot));
 						::glBindTexture(GL_TEXTURE_2D, pTexture->getTexture(textureID));
 						LOG_COMMAND(U"VSTexture{}[{}]: {}"_fmt(slot, command.index, textureID.value()));
 					}
@@ -789,16 +818,16 @@ namespace s3d
 				{
 					const uint32 slot = (FromEnum(command.type) - FromEnum(GLES3Renderer3DCommandType::PSTexture0));
 					const auto& textureID = m_commandManager.getPSTexture(slot, command.index);
+					const uint32 textureUnit = Shader::Internal::MakeSamplerSlot(ShaderStage::Pixel, slot);
+					::glActiveTexture(GL_TEXTURE0 + textureUnit);
 
 					if (textureID.isInvalid())
 					{
-						::glActiveTexture(GL_TEXTURE0 + Shader::Internal::MakeSamplerSlot(ShaderStage::Pixel, slot));
 						::glBindTexture(GL_TEXTURE_2D, 0);
 						LOG_COMMAND(U"PSTexture{}[{}]: null"_fmt(slot, command.index));
 					}
 					else
 					{
-						::glActiveTexture(GL_TEXTURE0 + Shader::Internal::MakeSamplerSlot(ShaderStage::Pixel, slot));
 						::glBindTexture(GL_TEXTURE_2D, pTexture->getTexture(textureID));
 						LOG_COMMAND(U"PSTexture{}[{}]: {}"_fmt(slot, command.index, textureID.value()));
 					}
@@ -851,6 +880,6 @@ namespace s3d
 
 		::glBindVertexArray(0);
 
-		CheckOpenGLError();
+		CheckOpenGLESError();
 	}
 }

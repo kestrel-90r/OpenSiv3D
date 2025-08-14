@@ -248,6 +248,22 @@ namespace s3d
 		c.erase(std::remove_if(std::begin(c), std::end(c), pred), std::end(c));
 	}
 
+    template <class Map, class Pred>
+    inline void Erase_if_map(Map& m, Pred pred)
+    {
+        for (auto it = m.begin(); it != m.end(); )
+        {
+            if (pred(*it))
+            {
+                it = m.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
+
 	template <class Container, class Pred>
 	inline void EraseNodes_if(Container& c, Pred pred)
 	{

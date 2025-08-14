@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -204,8 +205,11 @@ namespace s3d
 		template <class Fty, std::enable_if_t<std::is_invocable_v<Fty, bool>>* = nullptr>
 		auto operator >>(Fty f) const
 		{
+# if SIV3D_PLATFORM(ANDROID)
+            using Ret = std::remove_reference_t<std::remove_cv_t<decltype(f((*this)[0]))>>;
+# else
 			using Ret = std::remove_cvref_t<decltype(f((*this)[0]))>;
-
+#endif
 			if constexpr (std::is_same_v<Ret, void>)
 			{
 				each(f);
@@ -499,8 +503,11 @@ namespace s3d
 		template <class Fty, std::enable_if_t<std::is_invocable_v<Fty, bool>>* = nullptr>
 		auto map(Fty f) const
 		{
+# if SIV3D_PLATFORM(ANDROID)
+            Array<std::remove_reference_t<std::remove_cv_t<decltype(f((*this)[0]))>>> new_array(Arg::reserve = size());
+# else
 			Array<std::remove_cvref_t<decltype(f((*this)[0]))>> new_array(Arg::reserve = size());
-
+# endif
 			for (const auto& v : *this)
 			{
 				new_array.push_back(f(v));

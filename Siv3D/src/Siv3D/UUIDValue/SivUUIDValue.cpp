@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -11,8 +12,17 @@
 
 # include <Siv3D/UUIDValue.hpp>
 
+# if SIV3D_PLATFORM(ANDROID)
+
+# include <ThirdParty/stduuid/uuid/uuid.h>
+
+#else
+
 # define UUID_SYSTEM_GENERATOR
 # include <ThirdParty/stduuid/uuid.h>
+
+#endif
+
 
 namespace s3d
 {
@@ -112,8 +122,14 @@ namespace s3d
 
 	UUIDValue UUIDValue::Generate()
 	{
-		const uuids::uuid id = uuids::uuid_system_generator{}();
 
+# if SIV3D_PLATFORM(ANDROID)
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        const uuids::uuid id = uuids::basic_uuid_random_generator{ gen }();
+#else
+        const uuids::uuid id = uuids::uuid_system_generator{}();
+#endif
 		return detail::ToUUIDValue(id);
 	}
 

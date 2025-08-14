@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -113,40 +114,73 @@ namespace s3d
 		const double rxs = r.x * s.y - r.y * s.x;
 		const double qpxr = qp.x * r.y - qp.y * r.x;
 		const double qpxs = qp.x * s.y - qp.y * s.x;
-		const bool rxsIsZero = detail::IsZero(rxs);
 
-		if (rxsIsZero && detail::IsZero(qpxr))
+		if (detail::IsZero(rxs))
 		{
-			const double qpr = qp.dot(r);
-			const double pqs = (begin - other.begin).dot(s);
-
-			if ((0 <= qpr && qpr <= r.dot(r)) || (0 <= pqs && pqs <= s.dot(s)))
+			if (detail::IsZero(qpxr) && detail::IsZero(qpxs))
 			{
-				// Two lines are overlapping			
-				return Line::position_type{ Math::QNaN, Math::QNaN };
+				const double qpr = qp.dot(r);
+				const double q2pr = (other.end - begin).dot(r);
+				const double pqs = (begin - other.begin).dot(s);
+				const double p2qs = (end - other.begin).dot(s);
+
+				const double rr = r.dot(r);
+				const bool rrIsZero = detail::IsZero(rr);
+				const double ss = s.dot(s);
+				const bool ssIsZero = detail::IsZero(ss);
+
+				if (rrIsZero && ssIsZero && detail::IsZero(qp.dot(qp)))
+				{
+					// The two lines are both zero length and in the same position
+					return begin;
+				}
+
+				if ((not rrIsZero) && ((0 <= qpr && qpr <= rr) || (0 <= q2pr && q2pr <= rr)))
+				{
+					// Two lines are overlapping
+					if (ssIsZero)
+					{
+						return other.begin;
+					}
+					else
+					{
+						return Line::position_type{ Math::QNaN, Math::QNaN };
+					}
+				}
+
+				if ((not ssIsZero) && ((0 <= pqs && pqs <= ss) || (0 <= p2qs && p2qs <= ss)))
+				{
+					// Two lines are overlapping
+					if (rrIsZero)
+					{
+						return begin;
+					}
+					else
+					{
+						return Line::position_type{ Math::QNaN, Math::QNaN };
+					}
+				}
+
+				// Two lines are collinear but disjoint.
+				return none;
 			}
 
-			// Two lines are collinear but disjoint.
-			return none;
-		}
-
-		if (rxsIsZero && !detail::IsZero(qpxr))
-		{
 			// Two lines are parallel and non-intersecting.
 			return none;
 		}
-
-		const double t = qpxs / rxs;
-		const double u = qpxr / rxs;
-
-		if ((not rxsIsZero) && (0.0 <= t && t <= 1.0) && (0.0 <= u && u <= 1.0))
+		else
 		{
-			// An intersection was found
-			return begin + t * r;
-		}
+			const double t = qpxs / rxs;
+			const double u = qpxr / rxs;
+			if ((0.0 <= t && t <= 1.0) && (0.0 <= u && u <= 1.0))
+			{
+				// An intersection was found
+				return begin + t * r;
+			}
 
-		// Two line segments are not parallel but do not intersect
-		return none;
+			// Two line segments are not parallel but do not intersect
+			return none;
+		}
 	}
 
 	Optional<Line::position_type> Line::intersectsAtPrecise(const Line& other) const
@@ -249,14 +283,14 @@ namespace s3d
 		return *this;
 	}
 
-	const Line& Line::drawArrow(const double width, const Vec2& headSize, const ColorF& color) const
+	const Line& Line::drawArrow(const double width, const SizeF& headSize, const ColorF& color) const
 	{
 		Shape2D::Arrow(begin, end, width, headSize).draw(color);
 
 		return *this;
 	}
 
-	const Line& Line::drawDoubleHeadedArrow(const double width, const Vec2& headSize, const ColorF& color) const
+	const Line& Line::drawDoubleHeadedArrow(const double width, const SizeF& headSize, const ColorF& color) const
 	{
 		Shape2D::DoubleHeadedArrow(begin, end, width, headSize).draw(color);
 

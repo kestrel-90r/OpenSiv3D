@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -22,7 +23,13 @@ namespace s3d
 
 		inline cv::Mat GetMatView(Image& image)
 		{
+#if SIV3D_PLATFORM(ANDROID)
+            cv::Mat mat(image.height(), image.width(), CV_8UC4);
+            std::memcpy(mat.data, image.dataAsUint8(), image.stride() * image.height());
+            return mat;
+#else
 			return{ cv::Size{ image.width(), image.height() }, CV_8UC4, image.dataAsUint8(), image.stride() };
+#endif
 		}
 
 		inline constexpr int32 ConvertBorderType(const BorderType borderType) noexcept

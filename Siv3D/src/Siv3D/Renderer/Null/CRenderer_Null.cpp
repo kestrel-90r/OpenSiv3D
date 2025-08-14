@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -49,6 +50,13 @@ namespace s3d
 
 		clear();
 	}
+
+# if SIV3D_PLATFORM(ANDROID)
+    void CRenderer_Null::deinit()
+    {
+        // do nothing
+    }
+#endif
 
 	StringView CRenderer_Null::getName() const
 	{

@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -21,11 +22,11 @@
 # include <Siv3D/Shader/GLES3/CShader_GLES3.hpp>
 # include <Siv3D/ConstantBuffer/GLES3/ConstantBufferDetail_GLES3.hpp>
 
-/*/
+#if 0
 #	define LOG_COMMAND(...) LOG_TRACE(__VA_ARGS__)
-/*/
+#else
 #	define LOG_COMMAND(...) ((void)0)
-//*/
+#endif
 
 namespace s3d
 {
@@ -56,7 +57,7 @@ namespace s3d
 			m_vertexArray = 0;
 		}
 
-		CheckOpenGLError();
+		CheckOpenGLESError();
 	}
 
 	void CRenderer2D_GLES3::init()
@@ -113,22 +114,45 @@ namespace s3d
 
 		// シャドウ画像を作成
 		{
-			const Image boxShadowImage{ Resource(U"engine/texture/box-shadow/256.png") };
-
-			const Array<Image> boxShadowImageMips =
+			if (m_boxShadowTexture)
 			{
-				Image{ Resource(U"engine/texture/box-shadow/128.png") },
-				Image{ Resource(U"engine/texture/box-shadow/64.png") },
-				Image{ Resource(U"engine/texture/box-shadow/32.png") },
-				Image{ Resource(U"engine/texture/box-shadow/16.png") },
-				Image{ Resource(U"engine/texture/box-shadow/8.png") },
-			};
+				m_boxShadowTexture.reset();
+			}
+			
+			try {
+				const Image boxShadowImage{ Resource(U"engine/texture/box-shadow/256.png") };
 
-			m_boxShadowTexture = std::make_unique<Texture>(boxShadowImage, boxShadowImageMips);
+				const Array<Image> boxShadowImageMips =
+				{
+					Image{ Resource(U"engine/texture/box-shadow/128.png") },
+					Image{ Resource(U"engine/texture/box-shadow/64.png") },
+					Image{ Resource(U"engine/texture/box-shadow/32.png") },
+					Image{ Resource(U"engine/texture/box-shadow/16.png") },
+					Image{ Resource(U"engine/texture/box-shadow/8.png") },
+				};
 
-			if (m_boxShadowTexture->isEmpty())
+				m_boxShadowTexture = std::make_unique<Texture>(boxShadowImage, boxShadowImageMips);
+	
+				if (m_boxShadowTexture->isEmpty())
+				{
+					throw EngineError(U"Failed to create a box-shadow texture");
+				}
+				
+				const auto textureID = m_boxShadowTexture->id().value();
+
+                m_vsConstants2D.base().destroy();
+                m_psConstants2D.base().destroy();
+
+            }
+			catch (const std::exception& e) 
 			{
-				throw EngineError(U"Failed to create a box-shadow texture");
+				LOG_FAIL(U"❌ CRenderer2D_GLES3: Exception during box shadow texture creation");
+				throw;
+			}
+			catch (...) 
+			{
+				LOG_FAIL(U"❌ CRenderer2D_GLES3: Unknown exception during box shadow texture creation");
+				throw;
 			}
 		}
 
@@ -143,7 +167,36 @@ namespace s3d
 			::glSamplerParameteri(m_sampler, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 		}
 
-		CheckOpenGLError();
+	}
+
+    void CRenderer2D_GLES3::deinit()
+    {
+        LOG_SCOPED_TRACE(U"CRenderer2D_GLES3::deinit()");
+        flush();
+
+        m_commandManager.reset();
+        m_standardVS.reset();
+        m_standardPS.reset();
+
+        if (m_boxShadowTexture)
+        {
+            LOG_INFO(U"📦 CRenderer2D_GLES3::deinit(): Releasing box shadow texture ID: {}"_fmt(m_boxShadowTexture->id().value()));
+            m_boxShadowTexture.reset();
+        }
+
+        // OpenGL サンプラと VAO を削除
+        if (m_sampler)
+        {
+            ::glDeleteSamplers(1, &m_sampler);
+            m_sampler = 0;
+        }
+
+        if (m_vertexArray)
+        {
+            ::glDeleteVertexArrays(1, &m_vertexArray);
+            m_vertexArray = 0;
+        }
+
 	}
 
 	void CRenderer2D_GLES3::update()
@@ -422,6 +475,24 @@ namespace s3d
 	void CRenderer2D_GLES3::addRoundRect(const FloatRect& rect, const float w, const float h, const float r, const Float4& color)
 	{
 		if (const auto indexCount = Vertex2DBuilder::BuildRoundRect(m_bufferCreator, m_buffer, rect, w, h, r, color, getMaxScaling()))
+		{
+			if (not m_currentCustomVS)
+			{
+				m_commandManager.pushStandardVS(m_standardVS->spriteID);
+			}
+
+			if (not m_currentCustomPS)
+			{
+				m_commandManager.pushStandardPS(m_standardPS->shapeID);
+			}
+
+			m_commandManager.pushDraw(indexCount);
+		}
+	}
+
+	void CRenderer2D_GLES3::addRoundRectFrame(const RoundRect& outer, const RoundRect& inner, const Float4& color)
+	{
+		if (const auto indexCount = Vertex2DBuilder::BuildRoundRectFrame(m_bufferCreator, m_buffer, outer, inner, color, getMaxScaling()))
 		{
 			if (not m_currentCustomVS)
 			{
@@ -943,8 +1014,8 @@ namespace s3d
 
 		m_commandManager.flush();
 
-		pShader->setVS(VertexShader::IDType::NullAsset());
-		pShader->setPS(PixelShader::IDType::NullAsset());
+        pShader->setVS(VertexShader::IDType::NullAsset());
+        pShader->setPS(PixelShader::IDType::NullAsset());
 
 		const Size currentRenderTargetSize = SIV3D_ENGINE(Renderer)->getSceneBufferSize();
 		::glViewport(0, 0, currentRenderTargetSize.x, currentRenderTargetSize.y);
@@ -995,8 +1066,7 @@ namespace s3d
 					const GLES3DrawCommand& draw = m_commandManager.getDraw(command.index);
 					const uint32 indexCount = draw.indexCount;
 					const uint32 startIndexLocation = batchInfo.startIndexLocation;
-					// const uint32 baseVertexLocation = batchInfo.baseVertexLocation;
-					constexpr Vertex2D::IndexType* pBase = 0;
+                    constexpr Vertex2D::IndexType* pBase = 0;
 
 					::glDrawElements(GL_TRIANGLES, indexCount, GL_UNSIGNED_SHORT, (pBase + startIndexLocation));
 					batchInfo.startIndexLocation += indexCount;
@@ -1083,9 +1153,25 @@ namespace s3d
 			case GLES3Renderer2DCommandType::PSSamplerState7:
 				{
 					const uint32 slot = FromEnum(command.type) - FromEnum(GLES3Renderer2DCommandType::PSSamplerState0);
-					const auto& samplerState = m_commandManager.getPSSamplerState(slot, command.index);
-					pRenderer->getSamplerState().setPS(slot, samplerState);
-					LOG_COMMAND(U"PSSamplerState{}[{}] "_fmt(slot, command.index));
+					const auto& textureID = m_commandManager.getPSTexture(slot, command.index);
+					const uint32 textureUnit = Shader::Internal::MakeSamplerSlot(ShaderStage::Pixel, slot);
+					if (textureUnit >= 32) 
+					{
+						break;
+					}
+					::glActiveTexture(GL_TEXTURE0 + textureUnit);
+
+					if (textureID.isInvalid())
+					{
+						::glBindTexture(GL_TEXTURE_2D, 0);
+						LOG_COMMAND(U"PSTexture{}[{}]: null"_fmt(slot, command.index));
+					}
+					else
+					{
+						::glBindTexture(GL_TEXTURE_2D, pTexture->getTexture(textureID));
+						LOG_COMMAND(U"PSTexture{}[{}]: {}"_fmt(slot, command.index, textureID.value()));
+					}
+
 					break;
 				}
 			case GLES3Renderer2DCommandType::ScissorRect:
@@ -1293,7 +1379,7 @@ namespace s3d
 
 		::glBindVertexArray(0);
 
-		CheckOpenGLError();
+		CheckOpenGLESError();
 
 		++m_drawCount;
 	}
@@ -1340,6 +1426,6 @@ namespace s3d
 			}
 		}
 
-		CheckOpenGLError();
+		CheckOpenGLESError();
 	}
 }

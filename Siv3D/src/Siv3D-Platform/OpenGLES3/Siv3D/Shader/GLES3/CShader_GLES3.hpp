@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -11,7 +12,7 @@
 
 # pragma once
 # include <Siv3D/Common.hpp>
-# include <Siv3D/Common/OpenGL.hpp>
+# include <Siv3D/Common/OpenGLES.hpp>
 # include <Siv3D/Blob.hpp>
 # include <Siv3D/Shader.hpp>
 # include <Siv3D/ShaderStage.hpp>
@@ -32,6 +33,8 @@ namespace s3d
 		~CShader_GLES3() override;
 
 		void init() override;
+
+        void deinit() override;
 
 		VertexShader::IDType createVSFromFile(FilePathView path, StringView entryPoint, const Array<ConstantBufferBinding>& bindings) override;
 		

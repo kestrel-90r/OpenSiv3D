@@ -48,12 +48,20 @@ namespace s3d
 
 			try
 			{
+# if SIV3D_PLATFORM(ANDROID)
+				m_parser.DefineFun(name.toUTF8(), f);
+#else
 				m_parser.DefineFun(name.toWstr(), f);
+#endif
 				return true;
 			}
 			catch (mu::Parser::exception_type& e)
 			{
+# if SIV3D_PLATFORM(ANDROID)
+				m_errorMessage = std::wstring(e.GetMsg().begin(), e.GetMsg().end());
+#else
 				m_errorMessage = e.GetMsg();
+#endif
 				return false;
 			}
 		}

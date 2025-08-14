@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -189,7 +190,189 @@ namespace s3d
 
 		return true;
 	}
+	
+# if SIV3D_PLATFORM(ANDROID)
+	void NavMesh::NavMeshDetail::query(const Float2& _start, const Float2& _end, const Array<std::pair<int32, double>>& areaCosts, Array<Vec2>& dst) const
+	{
+		dst.clear();
 
+		if (not m_built)
+		{
+			return;
+		}
+
+		dtQueryFilter filter;
+		{
+			for (const auto& areaCost : areaCosts)
+			{
+				if (areaCost.first <= RC_WALKABLE_AREA)
+				{
+					filter.setAreaCost(areaCost.first, static_cast<float>(areaCost.second));
+				}
+			}
+		}
+
+		const Float3 start{ _start.x, 0.0f, _start.y }, end{ _end.x, 0.0f, _end.y };
+		constexpr Float3 extent{ 2.0f, 0.0f, 2.0f };
+
+		dtPolyRef startpoly;
+		{
+			if (dtStatusFailed(m_data.navmeshQuery.findNearestPoly(&start.x, &extent.x, &filter, &startpoly, 0)))
+			{
+				return;
+			}
+
+			if (startpoly == 0)
+			{
+				return;
+			}
+		}
+
+		dtPolyRef endpoly;
+		{
+			if (dtStatusFailed(m_data.navmeshQuery.findNearestPoly(&end.x, &extent.x, &filter, &endpoly, 0)))
+			{
+				return;
+			}
+
+			if (endpoly == 0)
+			{
+				return;
+			}
+		}
+
+		int32 npolys = 0;
+		{
+			if (dtStatusFailed(m_data.navmeshQuery.findPath(startpoly, endpoly, &start.x, &end.x, &filter, m_polygonBuffer.data(), &npolys, PolygonBufferSize)))
+			{
+				return;
+			}
+
+			if (npolys <= 0)
+			{
+				return;
+			}
+		}
+
+		float end2[3] = { end.x, end.y, end.z };
+
+		if (m_polygonBuffer[static_cast<size_t>(npolys) - 1] != endpoly)
+		{
+			bool posOverPoly;
+			m_data.navmeshQuery.closestPointOnPoly(m_polygonBuffer[static_cast<size_t>(npolys) - 1], &end.x, end2, &posOverPoly);
+		}
+
+		{
+			int32 nvertices = 0;
+			m_data.navmeshQuery.findStraightPath(&start.x, end2, m_polygonBuffer.data(), npolys, &m_buffer[0].x, 0, 0, &nvertices, MaxVertices);
+
+			if (nvertices)
+			{
+				dst.resize(nvertices);
+
+				const Float3* pSrc = m_buffer.data();
+				const Float3* pSrcEnd = (pSrc + nvertices);
+				Vec2* pDst = dst.data();
+
+				while (pSrc != pSrcEnd)
+				{
+					pDst->set(pSrc->x, pSrc->z);
+					++pDst;
+					++pSrc;
+				}
+			}
+		}
+	}
+
+	void NavMesh::NavMeshDetail::query(const Float3& start, const Float3& end, const Array<std::pair<int32, double>>& areaCosts, Array<Vec3>& dst) const
+	{
+		dst.clear();
+
+		if (not m_built)
+		{
+			return;
+		}
+
+		dtQueryFilter filter;
+		{
+			for (const auto& areaCost : areaCosts)
+			{
+				if (areaCost.first <= RC_WALKABLE_AREA)
+				{
+					filter.setAreaCost(areaCost.first, static_cast<float>(areaCost.second));
+				}
+			}
+		}
+
+		constexpr Float3 extent{ 2.0f, 4.0f, 2.0f };
+
+		dtPolyRef startpoly;
+		{
+			if (dtStatusFailed(m_data.navmeshQuery.findNearestPoly(&start.x, &extent.x, &filter, &startpoly, 0)))
+			{
+				return;
+			}
+
+			if (startpoly == 0)
+			{
+				return;
+			}
+		}
+
+		dtPolyRef endpoly;
+		{
+			if (dtStatusFailed(m_data.navmeshQuery.findNearestPoly(&end.x, &extent.x, &filter, &endpoly, 0)))
+			{
+				return;
+			}
+			if (endpoly == 0)
+			{
+				return;
+			}
+		}
+
+		int32 npolys = 0;
+		{
+			if (dtStatusFailed(m_data.navmeshQuery.findPath(startpoly, endpoly, &start.x, &end.x, &filter, m_polygonBuffer.data(), &npolys, PolygonBufferSize)))
+			{
+				return;
+			}
+
+			if (npolys <= 0)
+			{
+				return;
+			}
+		}
+
+		float end2[3] = { end.x, end.y, end.z };
+
+		if (m_polygonBuffer[static_cast<size_t>(npolys) - 1] != endpoly)
+		{
+			bool posOverPoly;
+			m_data.navmeshQuery.closestPointOnPoly(m_polygonBuffer[static_cast<size_t>(npolys) - 1], &end.x, end2, &posOverPoly);
+		}
+
+		{
+			int32 nvertices = 0;
+			m_data.navmeshQuery.findStraightPath(&start.x, end2, m_polygonBuffer.data(), npolys, &m_buffer[0].x, 0, 0, &nvertices, MaxVertices);
+
+			if (nvertices)
+			{
+				dst.resize(nvertices);
+
+				const Float3* pSrc = m_buffer.data();
+				const Float3* pSrcEnd = (pSrc + nvertices);
+				Vec3* pDst = dst.data();
+
+				while (pSrc != pSrcEnd)
+				{
+					*pDst++ = *pSrc++;
+				}
+			}
+		}
+	}
+
+#else
 	Array<Vec2> NavMesh::NavMeshDetail::query(const Float2& _start, const Float2& _end, const Array<std::pair<int32, double>>& areaCosts) const
 	{
 		if (not m_built)
@@ -356,6 +539,7 @@ namespace s3d
 
 		return buffer.map([](const Float3& v) { return Vec3{ v }; });
 	}
+#endif
 
 	bool NavMesh::NavMeshDetail::build(const NavMeshConfig& config, const NavMeshAABB& aabb,
 		const Array<Float3>& vertices, const Array<TriangleIndex>& indices, const Array<uint8>& areaIDs)
@@ -459,6 +643,11 @@ namespace s3d
 		{
 			return false;
 		}
+# if SIV3D_PLATFORM(ANDROID)
+		m_buffer.resize(MaxVertices);
+
+		m_polygonBuffer.resize(PolygonBufferSize);
+#endif
 
 		m_built = true;
 

@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -24,7 +25,11 @@ namespace s3d
 		~CMesh_Null() override;
 
 		virtual void init() override;
-
+		
+# if SIV3D_PLATFORM(ANDROID)
+        virtual void deinit() override;
+#endif
+		
 		Mesh::IDType create(const MeshData& meshData) override;
 
 		Mesh::IDType createDynamic(size_t vertexCount, size_t triangleCount) override;

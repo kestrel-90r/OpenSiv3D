@@ -1,0 +1,45 @@
+﻿//-----------------------------------------------
+//
+//	This file is part of the Siv3D Engine.
+//
+//	Copyright (c) 2008-2022 Ryo Suzuki
+//	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
+//
+//	Licensed under the MIT License.
+//
+//-----------------------------------------------
+
+#pragma once
+#include <Siv3D/Clipboard/IClipboard.hpp>
+#include <Siv3D/Common/OpenGLES.hpp>
+
+namespace s3d
+{
+    class CClipboard final : public ISiv3DClipboard
+    {
+    public:
+        CClipboard();
+
+        ~CClipboard() override;
+
+        void init() override;
+
+        bool hasChanged() override;
+
+        bool getText(String &text) override;
+
+        bool getImage(Image &image) override;
+
+        bool getFilePaths(Array<FilePath> &paths) override;
+
+        void setText(const String &text) override;
+
+        void setImage(const Image &image) override;
+
+        void clear() override;
+
+    private:
+        void *m_window = nullptr;
+    };
+}

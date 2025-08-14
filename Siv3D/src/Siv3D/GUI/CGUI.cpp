@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -45,6 +46,28 @@ namespace s3d
 			m_defaultFont->addFallback(iconFont);
 		}
 	}
+
+# if SIV3D_PLATFORM(ANDROID)
+	void CGUI::deinit()
+	{
+		LOG_SCOPED_TRACE(U"CGUI::deinit()");
+
+		if (m_defaultFont)
+		{
+			m_defaultFont.reset();
+		}
+
+		if (!m_iconFonts.empty())
+		{
+			m_iconFonts.clear();
+		}
+
+		if (m_colorPickerTexture)
+		{
+			m_colorPickerTexture.reset();
+		}
+	}
+#endif
 
 	const Font& CGUI::getDefaultFont() const noexcept
 	{

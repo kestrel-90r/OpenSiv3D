@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -34,6 +35,10 @@ namespace s3d
 		explicit ConstantBufferBase(size_t size);
 
 		bool _internal_update(const void* data, size_t size);
+
+# if SIV3D_PLATFORM(ANDROID)
+		void destroy() const;
+# endif
 
 		[[nodiscard]]
 		const IConstantBufferDetail* _detail() const;
@@ -100,6 +105,7 @@ namespace s3d
 
 		[[nodiscard]]
 		const ConstantBufferBase& base() const noexcept;
+
 
 		[[nodiscard]]
 		Type& operator *() noexcept;

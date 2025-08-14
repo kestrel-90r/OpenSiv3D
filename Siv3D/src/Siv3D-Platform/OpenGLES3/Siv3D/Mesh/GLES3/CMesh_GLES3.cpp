@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -30,7 +31,7 @@ namespace s3d
 
 	void CMesh_GLES3::init()
 	{
-		LOG_SCOPED_TRACE(U"CMesh_D3D11::init()");
+		LOG_SCOPED_TRACE(U"CMesh_GLES3::init()");
 
 		// null Mesh を管理に登録
 		{
@@ -44,6 +45,24 @@ namespace s3d
 
 			// 管理に登録
 			m_meshes.setNullData(std::move(nullMesh));
+		}
+	}
+
+	void CMesh_GLES3::deinit()
+	{
+		LOG_SCOPED_TRACE(U"CMesh_GLES3::deinit()");
+		
+		try {
+			m_meshes.destroy();
+			m_meshes.reset();
+		}
+		catch (const std::exception& e) 
+		{
+			LOG_ERROR(U"CMesh_GLES3::deinit() failed with exception ");
+		}
+		catch (...) 
+		{
+			LOG_ERROR(U"CMesh_GLES3::deinit() failed with unknown exception");
 		}
 	}
 

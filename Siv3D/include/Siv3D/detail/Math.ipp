@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -1010,6 +1011,119 @@ namespace s3d
 		}
 
 		SIV3D_MATH_FUNCTION_X(Tanh)
+
+		//////////////////////////////////////////////////
+		//
+		//	Dot
+		//
+		//////////////////////////////////////////////////
+# if SIV3D_PLATFORM(ANDROID)
+		inline constexpr float Dot(const Float2 v1, const Float2 v2) noexcept
+		{
+			return v1.dot(v2);
+		}
+
+		inline constexpr double Dot(const Float2 v1, const Vec2 v2) noexcept
+		{
+			return Vec2{ v1 }.dot(v2);
+		}
+
+		inline constexpr double Dot(const Vec2 v1, const Float2 v2) noexcept
+		{
+			return v1.dot(Vec2{ v2 });
+		}
+
+		inline constexpr double Dot(const Vec2 v1, const Vec2 v2) noexcept
+		{
+			return v1.dot(v2);
+		}
+
+		inline constexpr float Dot(const Float3 v1, const Float3 v2) noexcept
+		{
+			return v1.dot(v2);
+		}
+
+		inline constexpr double Dot(const Float3 v1, const Vec3 v2) noexcept
+		{
+			return Vec3{ v1 }.dot(v2);
+		}
+
+		inline constexpr double Dot(const Vec3 v1, const Float3 v2) noexcept
+		{
+			return v1.dot(Vec3{ v2 });
+		}
+
+		inline constexpr double Dot(const Vec3 v1, const Vec3 v2) noexcept
+		{
+			return v1.dot(v2);
+		}
+
+		inline constexpr float Dot(const Float4 v1, const Float4 v2) noexcept
+		{
+			return v1.dot(v2);
+		}
+
+		inline constexpr double Dot(const Float4 v1, const Vec4 v2) noexcept
+		{
+			return Vec4{ v1 }.dot(v2);
+		}
+
+		inline constexpr double Dot(const Vec4 v1, const Float4 v2) noexcept
+		{
+			return v1.dot(Vec4{ v2 });
+		}
+
+		inline constexpr double Dot(const Vec4 v1, const Vec4 v2) noexcept
+		{
+			return v1.dot(v2);
+		}
+
+		//////////////////////////////////////////////////
+		//
+		//	Cross
+		//
+		//////////////////////////////////////////////////
+
+		inline constexpr float Cross(const Float2 v1, const Float2 v2) noexcept
+		{
+			return v1.cross(v2);
+		}
+
+		inline constexpr double Cross(const Float2 v1, const Vec2 v2) noexcept
+		{
+			return Vec2{ v1 }.cross(v2);
+		}
+
+		inline constexpr double Cross(const Vec2 v1, const Float2 v2) noexcept
+		{
+			return v1.cross(Vec2{ v2 });
+		}
+
+		inline constexpr double Cross(const Vec2 v1, const Vec2 v2) noexcept
+		{
+			return v1.cross(v2);
+		}
+
+		inline constexpr Float3 Cross(const Float3 v1, const Float3 v2) noexcept
+		{
+			return v1.cross(v2);
+		}
+
+		inline constexpr Vec3 Cross(const Float3 v1, const Vec3 v2) noexcept
+		{
+			return Vec3{ v1 }.cross(v2);
+		}
+
+		inline constexpr Vec3 Cross(const Vec3 v1, const Float3 v2) noexcept
+		{
+			return v1.cross(Vec3{ v2 });
+		}
+
+		inline constexpr Vec3 Cross(const Vec3 v1, const Vec3 v2) noexcept
+		{
+			return v1.cross(v2);
+		}
+#endif
 
 		//////////////////////////////////////////////////
 		//

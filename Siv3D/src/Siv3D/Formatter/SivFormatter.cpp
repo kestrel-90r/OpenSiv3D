@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -111,10 +112,12 @@ namespace s3d
 		formatData.string.push_back(static_cast<char32>(ch));
 	}
 
+#if !SIV3D_PLATFORM(ANDROID)
 	void Formatter(FormatData& formatData, const char8_t ch)
 	{
 		formatData.string.push_back(static_cast<char32>(ch));
 	}
+#endif
 
 	void Formatter(FormatData& formatData, const char16_t ch)
 	{

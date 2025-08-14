@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -126,7 +127,7 @@ namespace s3d
 		::glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, wraps[static_cast<int32>(state.addressU)]);
 		::glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, wraps[static_cast<int32>(state.addressV)]);
 		::glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, wraps[static_cast<int32>(state.addressW)]);
-		::glSamplerParameterf(sampler, GL_TEXTURE_LOD_BIAS, state.lodBias);
+		//::glSamplerParameterf(sampler, GL_TEXTURE_LOD_BIAS, state.lodBias);
 		::glSamplerParameteri(sampler, GL_TEXTURE_COMPARE_MODE, GL_NONE);
 		::glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, state.maxAnisotropy);
 		::glSamplerParameterfv(sampler, GL_TEXTURE_BORDER_COLOR, border);

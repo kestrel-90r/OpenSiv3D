@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -18,8 +19,27 @@
 # include <Siv3D/CacheDirectory/CacheDirectory.hpp>
 # include "FontCommon.hpp"
 
+# if SIV3D_PLATFORM(ANDROID)
+# include <Siv3D/Unicode.hpp>
+# include <Siv3D/Time.hpp>
+# include <Siv3D/BinaryWriter.hpp>
+# include <Siv3D/Format.hpp>
+# include <android/asset_manager.h>
+#endif
+
 namespace s3d
 {
+# if SIV3D_PLATFORM(ANDROID)
+	extern AAssetManager* g_AssetManager;
+
+	FilePath GetAndroidAppCachePath()
+	{
+		const FilePath fileCachePath = U"/data/data/com.kestrel.opensiv3d/files/Siv3D/";
+		FileSystem::CreateDirectories(fileCachePath);
+		return fileCachePath;
+	}
+#endif
+
 	namespace detail
 	{
 		struct EngineFontResource
@@ -56,7 +76,13 @@ namespace s3d
 		{
 			LOG_SCOPED_TRACE(U"detail::ExtractEngineFonts()");
 
+# if SIV3D_PLATFORM(ANDROID)
+			const FilePath fontCacheDirectory = GetAndroidAppCachePath() + U"font/";
+		
+			FileSystem::CreateDirectories(fontCacheDirectory);
+#else
 			const FilePath fontCacheDirectory = CacheDirectory::Engine() + U"font/";
+#endif
 
 			LOG_INFO(U"fontCacheDirectory: " + fontCacheDirectory);
 
@@ -72,8 +98,80 @@ namespace s3d
 					continue;
 				}
 
+# if SIV3D_PLATFORM(ANDROID)
+				FilePath fontResourcePath;
+				bool existsInResource = false;
+
+				if (g_AssetManager)
+				{
+					std::string primaryPath = "engine/font/" + name.narrow() + (compressed ? ".zstdcmp" : "");
+					
+					AAsset* asset = AAssetManager_open(g_AssetManager, primaryPath.c_str(), AASSET_MODE_RANDOM);
+					if (asset)
+					{
+						AAsset_close(asset);
+						fontResourcePath = Unicode::Widen(primaryPath);
+						existsInResource = true;
+					}
+					
+					else if (compressed)
+					{
+						std::string altPath = "assets/engine/font/" + name.narrow() + ".zstdcmp";
+						
+						AAsset* asset = AAssetManager_open(g_AssetManager, altPath.c_str(), AASSET_MODE_RANDOM);
+						
+						if (asset)
+						{
+							AAsset_close(asset);
+							fontResourcePath = Unicode::Widen(altPath);
+							existsInResource = true;
+						}
+					}
+					
+					if (existsInResource && compressed)
+					{
+						const FilePath tempFileName = U"temp_" + Format(Time::GetMillisec()) + (compressed ? U".zstdcmp" : U"");
+						const FilePath tempFilePath = fontCacheDirectory + tempFileName;
+						
+						AAsset* asset = AAssetManager_open(g_AssetManager, fontResourcePath.narrow().c_str(), AASSET_MODE_BUFFER);
+						if (asset)
+						{
+							const size_t size = AAsset_getLength(asset);
+							const void* buffer = AAsset_getBuffer(asset);
+							
+							if (buffer && size > 0)
+							{
+								try
+								{
+									BinaryWriter writer(tempFilePath);
+									if (writer)
+									{
+										writer.write(buffer, size);
+										writer.close();
+										
+										fontResourcePath = tempFilePath;
+									}
+								}
+								catch (const std::exception&)
+								{
+									LOG_ERROR(U"✖ Failed to prepare the engine font `{0}`."_fmt(name));
+								}
+							}
+							
+							AAsset_close(asset);
+						}
+					}
+				}
+
+				if (not existsInResource)
+				{
+					fontResourcePath = Resource(U"engine/font/" + name + (compressed ? U".zstdcmp" : U""));
+					existsInResource = FileSystem::Exists(fontResourcePath);
+				}
+#else
 				const FilePath fontResourcePath = Resource(U"engine/font/" + name + (compressed ? U".zstdcmp" : U""));
 				const bool existsInResource = FileSystem::Exists(fontResourcePath);
+#endif
 
 				if (not existsInResource)
 				{
@@ -87,6 +185,47 @@ namespace s3d
 					continue;
 				}
 
+# if SIV3D_PLATFORM(ANDROID)
+				try
+				{
+					if (compressed)
+					{
+						if (not Compression::DecompressFileToFile(fontResourcePath, cachedFontPath))
+						{
+							LOG_ERROR(U"✖ Engine font `{0}` decompression failed"_fmt(name));
+							FileSystem::Remove(cachedFontPath);
+							
+							if (required)
+							{
+								return false;
+							}
+						}
+					}
+					else
+					{
+						FileSystem::Copy(fontResourcePath, cachedFontPath);
+					}
+				}
+				catch (const std::exception&)
+				{
+					if (required)
+					{
+						return false;
+					}
+				}
+				
+				if (fontResourcePath.includes(U"temp_"))
+				{
+					try
+					{
+						FileSystem::Remove(fontResourcePath);
+					}
+					catch (const std::exception&)
+					{
+						LOG_ERROR(U"✖ Engine font `{0}` remove failed"_fmt(name));
+					}
+				}
+#else
 				// フォントファイルの展開に失敗したらエラー
 				if (compressed)
 				{
@@ -97,8 +236,9 @@ namespace s3d
 						return false;
 					}
 				}
-			}
+#endif
 
+			}
 			return true;
 		}
 
@@ -125,7 +265,11 @@ namespace s3d
 
 		TypefaceInfo GetTypefaceInfo(const Typeface typeface)
 		{
+# if SIV3D_PLATFORM(ANDROID)
+			const FilePath fontCacheDirectory = (GetAndroidAppCachePath() + U"font/");
+#else
 			const FilePath fontCacheDirectory = (CacheDirectory::Engine() + U"font/");
+#endif
 
 			TypefaceInfo info;
 
@@ -215,12 +359,54 @@ namespace s3d
 			{
 				return iconData.renderSDF(glyphIndex, fontPixelSize, buffer).image;
 			}
-			else
+			else 
 			{
 				return iconData.renderMSDF(glyphIndex, fontPixelSize, buffer).image;
 			}
 		}
 
+# if SIV3D_PLATFORM(ANDROID)
+		static Image RenderIcon(const FontMethod method, const Array<std::unique_ptr<IconData>>& defaultIcons, const Icon::Type iconType, const char32 codePoint, const int32 fontPixelSize, const int32 buffer)
+		{
+			GlyphIndex glyphIndex;
+			IconData* iconData = nullptr;
+
+			if (iconType == Icon::Type::Awesome)
+			{
+				glyphIndex = defaultIcons[0]->getGlyphIndex(codePoint);
+
+				if (glyphIndex != 0)
+				{
+					iconData = defaultIcons[0].get();
+				}
+				else
+				{
+					glyphIndex = defaultIcons[1]->getGlyphIndex(codePoint);
+
+					if (glyphIndex != 0)
+					{
+						iconData = defaultIcons[1].get();
+					}
+				}
+			}
+			else
+			{
+				glyphIndex = defaultIcons[2]->getGlyphIndex(codePoint);
+
+				if (glyphIndex != 0)
+				{
+					iconData = defaultIcons[2].get();
+				}
+			}
+
+			if (not iconData)
+			{
+				return Image();
+			}
+
+			return RanderIcon(method, glyphIndex, fontPixelSize, buffer, *iconData);
+		}
+#else
 		static Image RenderIcon(const FontMethod method, const Array<std::unique_ptr<IconData>>& defaultIcons, const Icon::Type iconType, const char32 codePoint, const int32 fontPixelSize, const int32 buffer)
 		{
 			if (iconType == Icon::Type::Awesome)
@@ -247,6 +433,7 @@ namespace s3d
 
 			return{};
 		}
+#endif
 
 		Image RenderIconBitmap(const Array<std::unique_ptr<IconData>>& defaultIcons, const Icon::Type iconType, const char32 codePoint, const int32 fontPixelSize)
 		{
@@ -264,3 +451,4 @@ namespace s3d
 		}
 	}
 }
+

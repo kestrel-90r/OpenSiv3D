@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -24,6 +25,17 @@ namespace s3d
 	{
 		LOG_SCOPED_TRACE(U"CTexture_Null::~CTexture_Null()");
 	}
+# if SIV3D_PLATFORM(ANDROID)
+	void CTexture_Null::init()
+	{
+		// do nothing
+	}
+
+	void CTexture_Null::deinit()
+	{
+		// do nothing
+	}
+#endif
 
 	void CTexture_Null::updateAsyncTextureLoad(const size_t)
 	{

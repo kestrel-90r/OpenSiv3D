@@ -566,7 +566,7 @@ namespace s3d
 	void GLES3Texture::clearRT(const ColorF& color)
 	{
 		if ((m_type != TextureType::Render)
-			&& (m_type != TextureType::MSRender))
+		    && (m_type != TextureType::MSRender))
 		{
 			return;
 		}

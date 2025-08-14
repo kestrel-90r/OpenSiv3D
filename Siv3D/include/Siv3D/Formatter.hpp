@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -52,7 +53,9 @@ namespace s3d
 
 	void Formatter(FormatData& formatData, char ch);
 
+# ifndef __ANDROID__
 	void Formatter(FormatData& formatData, char8_t ch);
+# endif
 
 	void Formatter(FormatData& formatData, char16_t ch);
 
@@ -66,7 +69,9 @@ namespace s3d
 
 	void Formatter(FormatData& formatData, const char*) = delete;
 
+# ifndef __ANDROID__
 	void Formatter(FormatData& formatData, const char8_t*) = delete;
+# endif
 
 	void Formatter(FormatData& formatData, const char16_t*) = delete;
 

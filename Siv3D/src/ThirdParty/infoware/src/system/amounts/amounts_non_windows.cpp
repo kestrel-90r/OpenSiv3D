@@ -12,11 +12,14 @@
 
 #ifndef _WIN32
 
-
-#include "infoware/detail/scope.hpp"
-#include "infoware/system.hpp"
-#include <cstring>
-#include <wordexp.h>
+#ifndef __ANDROID__
+    #include "infoware/detail/scope.hpp"
+    #include <cstring>
+    #include <wordexp.h>
+#else
+    #include <cstddef>
+    #include "infoware/system.hpp"
+#endif
 
 template <class Callback>
 class ScopeGuard final
@@ -45,6 +48,7 @@ public:
 
 // http://man7.org/linux/man-pages/man3/wordexp.3.html
 static std::size_t count_expansions(const char* of) noexcept {
+#ifndef __ANDROID__
 	wordexp_t exp{};
 	ScopeGuard exp_deleter{[&]() { wordfree(&exp); }};
 
@@ -56,6 +60,9 @@ static std::size_t count_expansions(const char* of) noexcept {
 		return 0;
 	else
 		return exp.we_wordc;
+#else
+    return 0;
+#endif
 }
 
 

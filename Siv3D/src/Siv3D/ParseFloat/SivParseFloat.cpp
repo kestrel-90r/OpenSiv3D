@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -32,7 +33,7 @@ namespace s3d
 			StringToDoubleConverter conv(flags, 0.0, sNaN, "inf", "nan");
 
 			int unused;
-			const double result = conv.Siv3D_StringToIeee(s.data(), static_cast<int>(s.length()), false, &unused);
+			const double result = conv.Siv3D_StringToIeee(s.data(), static_cast<int>(s.length()), true, &unused);
 
 			if (std::memcmp(&result, &sNaN, sizeof(double)) == 0)
 			{

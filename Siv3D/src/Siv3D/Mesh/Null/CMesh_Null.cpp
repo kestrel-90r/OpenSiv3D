@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -29,6 +30,13 @@ namespace s3d
 	{
 		LOG_SCOPED_TRACE(U"CMesh_Null::init()");
 	}
+	
+# if SIV3D_PLATFORM(ANDROID)
+    void CMesh_Null::deinit()
+    {
+        LOG_SCOPED_TRACE(U"CMesh_Null::init()");
+    }
+#endif
 
 	Mesh::IDType CMesh_Null::create(const MeshData&)
 	{

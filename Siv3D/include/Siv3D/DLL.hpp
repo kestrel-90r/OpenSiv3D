@@ -74,7 +74,7 @@ namespace s3d
 
 # endif
 
-# if SIV3D_PLATFORM(MACOS) || SIV3D_PLATFORM(LINUX) || SIV3D_PLATFORM(WEB)
+# if SIV3D_PLATFORM(MACOS) || SIV3D_PLATFORM(LINUX) || SIV3D_PLATFORM(WEB) || defined(__ANDROID__)
 
 # include <dlfcn.h>
 

@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -44,6 +45,10 @@ namespace s3d
 		virtual ~ISiv3DRenderer3D() = default;
 
 		virtual void init() = 0;
+
+        # if SIV3D_PLATFORM(ANDROID)
+        virtual void deinit() = 0;
+		#endif
 
 		virtual const Renderer3DStat& getStat() const = 0;
 
@@ -129,7 +134,6 @@ namespace s3d
 
 
 		virtual void setConstantBuffer(ShaderStage stage, uint32 slot, const ConstantBufferBase& buffer, const float* data, uint32 num_vectors) = 0;
-
 
 		virtual void flush() = 0;
 	};

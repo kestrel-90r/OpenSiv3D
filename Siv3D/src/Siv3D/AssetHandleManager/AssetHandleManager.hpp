@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -116,11 +117,18 @@ namespace s3d
 
 			const auto it = m_data.find(id);
 
-			assert(it != m_data.end());
-
+# if SIV3D_PLATFORM(ANDROID)
 			LOG_TRACE(U"♻️ Released {0}[{1}]"_fmt(m_assetTypeName, id.value()));
-
+            if (it != m_data.end())
+            {
+                m_data.erase(it);
+            }
+#else
+			assert(it != m_data.end());
+			LOG_TRACE(U"♻️ Released {0}[{1}]"_fmt(m_assetTypeName, id.value()));
 			m_data.erase(it);
+#endif
+
 
 			SIV3D_ENGINE(AssetMonitor)->released();
 		}
@@ -142,7 +150,20 @@ namespace s3d
 			}
 
 			m_data.clear();
+        }
+
+# if SIV3D_PLATFORM(ANDROID)
+		void reset()
+		{
+			std::lock_guard lock{ m_mutex };
+			
+			// IDカウンターをリセット
+			m_idCount = 0;
+			m_idFilled = false;
+			
+			LOG_TRACE(U"🔄 Reset ID counter for {0}"_fmt(m_assetTypeName));
 		}
+#endif
 
 		[[nodiscard]]
 		iterator begin()

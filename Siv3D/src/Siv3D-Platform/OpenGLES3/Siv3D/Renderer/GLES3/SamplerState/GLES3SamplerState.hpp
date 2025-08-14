@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -11,7 +12,7 @@
 
 # pragma once
 # include <Siv3D/Common.hpp>
-# include <Siv3D/Common/OpenGL.hpp>
+# include <Siv3D/Common/OpenGLES.hpp>
 # include <Siv3D/SamplerState.hpp>
 # include <Siv3D/HashTable.hpp>
 # include <Siv3D/Optional.hpp>

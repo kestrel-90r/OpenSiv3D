@@ -211,11 +211,11 @@ namespace s3d
 		}
 
 		Blob Decode(const std::string_view base64)
-		{
+	{
 			if (base64.empty())
-			{
+		{
 				return{};
-			}
+		}
 
 			Array<Byte> dst(detail::DecodeLength(base64));
 			const size_t blocks = (base64.length() / 4);
@@ -224,7 +224,7 @@ namespace s3d
 			Byte* pDst = dst.data();
 
 			for (size_t i = 0; i < blocks; ++i)
-			{
+		{
 				const uint8 v1 = detail::decodeTable[static_cast<uint8>(*pSrc++)];
 				const uint8 v2 = detail::decodeTable[static_cast<uint8>(*pSrc++)];
 
@@ -233,24 +233,24 @@ namespace s3d
 				const uint8 v3 = detail::decodeTable[*pSrc++ & 0xff];
 
 				if (v3 == 0xFF)
-				{
+		{
 					break;
-				}
+		}
 
 				*pDst++ = static_cast<Byte>((v2 << 4 | v3 >> 2) & 0xff);
 
 				const uint8 v4 = detail::decodeTable[static_cast<uint8>(*pSrc++)];
 
 				if (v4 == 0xFF)
-				{
+		{
 					break;
-				}
+		}
 
 				*pDst++ = static_cast<Byte>((v3 << 6 | v4) & 0xff);
 			}
 
 			if (remain)
-			{
+		{
 				const uint8 v1 = detail::decodeTable[static_cast<uint8>(*pSrc++)];
 				const uint8 v2 = detail::decodeTable[static_cast<uint8>(*pSrc++)];
 

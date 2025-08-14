@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -18,7 +19,7 @@ namespace s3d
 		return m_sceneSize;
 	}
 
-	inline double BasicCamera3D::getVerticlaFOV() const noexcept
+	inline double BasicCamera3D::getVerticalFOV() const noexcept
 	{
 		return m_verticalFOV;
 	}

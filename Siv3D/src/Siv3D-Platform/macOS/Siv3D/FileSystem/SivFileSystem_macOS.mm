@@ -117,12 +117,12 @@ namespace s3d
 				}
 				else
 				{
-					NSURL* file = [NSURL fileURLWithPath:path];
-					NSURL* absolutePath = [file absoluteURL];
-					NSString* str = [absolutePath path];
-					return std::string([str UTF8String], [str lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);
-				}
+				NSURL* file = [NSURL fileURLWithPath:path];
+				NSURL* absolutePath = [file absoluteURL];
+				NSString* str = [absolutePath path];
+				return std::string([str UTF8String], [str lengthOfBytesUsingEncoding:NSUTF8StringEncoding]);
 			}
+		}
 		}
 	
 		[[nodiscard]]
@@ -454,43 +454,43 @@ namespace s3d
 			}
 			
 			FilePath result = Unicode::Widen(detail::MacOS_FullPath(src.toUTF8().c_str(), isRelative));
-			
+	
 			if (result.starts_with(U"file://"))
-			{
+		{
 				result.erase(result.begin(), result.begin() + 7);
 			}
 			
 			if ((isDirectory || IsDirectory(result)) && !result.ends_with(U'/'))
 			{
 				result.push_back(U'/');
-			}
-			
-			return result;
 		}
 	
+			return result;
+		}
+
 		Platform::NativeFilePath NativePath(const FilePathView path)
 		{
 			if (not path) SIV3D_UNLIKELY
 			{
 				return Platform::NativeFilePath();
-			}
-			
+				}
+				
 			FilePath src;
 			bool isRelative = false;
 			
 			if (path.starts_with(U"/Users/"))
-			{
+				{
 				src = path;
-			}
-			else
-			{
+				}
+				else
+				{
 				src = U"../" + path;
 				isRelative = true;
-			}
+				}
 			
 			return detail::MacOS_FullPath(src.toUTF8().c_str(), isRelative);
-		}
-	
+			}
+			
 		FilePath VolumePath(const FilePathView)
 		{
 			// [Siv3D ToDo]

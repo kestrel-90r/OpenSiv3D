@@ -97,7 +97,7 @@ namespace s3d
 		[[nodiscard]]
 		static constexpr AssetID InvalidValue() noexcept;
 
-	private:
+//	private:
 
 		value_type m_value = NullID;
 	};

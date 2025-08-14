@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -18,7 +19,7 @@
 # include <Siv3D/Renderer2D/IRenderer2D.hpp>
 # include <Siv3D/Renderer2D/Vertex2DBuilder.hpp>
 # include <Siv3D/Renderer2D/Renderer2DCommon.hpp>
-# include <Siv3D/Common/OpenGL.hpp>
+# include <Siv3D/Common/OpenGLES.hpp>
 # include "GLES3Renderer2DCommand.hpp"
 # include "GLES3Vertex2DBatch.hpp"
 
@@ -123,6 +124,8 @@ namespace s3d
 
 		void init() override;
 
+        void deinit() override;
+
 		void update() override;
 
 		const Renderer2DStat& getStat() const override;
@@ -156,6 +159,8 @@ namespace s3d
 		void addQuad(const FloatQuad& quad, const Float4(&colors)[4]) override;
 
 		void addRoundRect(const FloatRect& rect, float w, float h, float r, const Float4& color) override;
+
+		void addRoundRectFrame(const RoundRect& outer, const RoundRect& inner, const Float4& color) override;
 
 		void addLineString(const LineStyle& style, const Vec2* points, size_t size, const Optional<Float2>& offset, float thickness, bool inner, const Float4& color, CloseRing closeRing) override;
 

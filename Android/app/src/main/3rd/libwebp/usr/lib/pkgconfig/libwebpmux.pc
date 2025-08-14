@@ -1,0 +1,12 @@
+prefix=/data/data/com.termux/files/usr
+exec_prefix=${prefix}
+libdir=/data/data/com.termux/files/usr/lib
+includedir=${prefix}/include
+
+Name: libwebpmux
+Description: Library for manipulating the WebP graphics format container
+Version: 1.5.0
+Requires: libwebp >= 0.2.0
+Cflags: -I${includedir}
+Libs: -L${libdir} -lwebpmux
+Libs.private: -lm

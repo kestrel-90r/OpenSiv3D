@@ -2127,10 +2127,10 @@ namespace s3d
 			}
 
 			Image image(targetWidth, targetHeight);
-			const cv::Mat matSrc(cv::Size(m_width, m_height), CV_8UC4, const_cast<uint8*>(dataAsUint8()), stride());
-			cv::Mat matDst = OpenCV_Bridge::GetMatView(image);
+            const cv::Mat matSrc(cv::Size(m_width, m_height), CV_8UC4, const_cast<uint8*>(dataAsUint8()), stride());
+            cv::Mat matDst = OpenCV_Bridge::GetMatView(image);
 
-			cv::resize(matSrc, matDst, matDst.size(), 0, 0, static_cast<int32>(interpolation));
+            cv::resize(matSrc, matDst, matDst.size(), 0, 0, static_cast<int32>(interpolation));
 			return image;
 		}
 	}

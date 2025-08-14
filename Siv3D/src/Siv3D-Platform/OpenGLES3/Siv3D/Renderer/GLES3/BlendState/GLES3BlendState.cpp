@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -43,10 +44,10 @@ namespace s3d
 			0,
 			GL_CONSTANT_COLOR,
 			GL_ONE_MINUS_CONSTANT_COLOR,
-			GL_SRC1_COLOR,
-			GL_ONE_MINUS_SRC1_COLOR,
-			GL_SRC1_ALPHA,
-			GL_ONE_MINUS_SRC1_ALPHA,
+            GL_SRC_COLOR,          
+            GL_ONE_MINUS_SRC_COLOR,
+            GL_SRC_ALPHA,          
+            GL_ONE_MINUS_SRC_ALPHA,
 		};
 	}
 

@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025 kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -21,6 +22,7 @@
 # define SIV3D_PLATFORM_PRIVATE_DEFINITION_WINDOWS()	0
 # define SIV3D_PLATFORM_PRIVATE_DEFINITION_MACOS()		0
 # define SIV3D_PLATFORM_PRIVATE_DEFINITION_LINUX()		0
+# define SIV3D_PLATFORM_PRIVATE_DEFINITION_ANDROID()	0
 # define SIV3D_PLATFORM_PRIVATE_DEFINITION_WEB()		0
 
 # if defined(_WIN32) // Windows
@@ -34,6 +36,12 @@
 	# define SIV3D_PLATFORM_NAME	U"macOS"
 	# undef  SIV3D_PLATFORM_PRIVATE_DEFINITION_MACOS
 	# define SIV3D_PLATFORM_PRIVATE_DEFINITION_MACOS()		1
+
+# elif defined(__ANDROID__) // Android
+
+	# define SIV3D_PLATFORM_NAME	U"Android"
+	# undef  SIV3D_PLATFORM_PRIVATE_DEFINITION_ANDROID
+	# define SIV3D_PLATFORM_PRIVATE_DEFINITION_ANDROID()	1
 
 # elif defined(__linux__) // Linux
 
@@ -76,6 +84,11 @@
 
 	# undef  SIV3D_INTRINSIC_PRIVATE_DEFINITION_SSE
 	# define SIV3D_INTRINSIC_PRIVATE_DEFINITION_SSE()	1
+# elif defined(__ANDROID__) // Android
+
+# define SIV3D_PLATFORM_NAME	U"Android"
+# undef  SIV3D_PLATFORM_PRIVATE_DEFINITION_ANDROID
+# define SIV3D_PLATFORM_PRIVATE_DEFINITION_ANDROID()	1
 
 # elif SIV3D_PLATFORM(LINUX)
 
@@ -127,11 +140,11 @@
 //
 //////////////////////////////////////////////////
 
-# if SIV3D_PLATFORM(WINDOWS) && (_MSC_VER < 1929) // 古い Visual Studio | Old MSVC
+# if SIV3D_PLATFORM(WINDOWS) && (_MSC_VER < 1933) // 古い Visual Studio | Old MSVC
 
 	// お使いの Visual Studio のバージョンが古い場合、このエラーが発生します
 	// This error occures when your Visual Studio version is not up to date.
-	# error Please update the Visual Studio. Visual Studio 2019 16.10 or later is required to build this project.
+	# error Please update the Visual Studio. Visual Studio 2022 17.3 is required to build this project.
 
 # endif
 

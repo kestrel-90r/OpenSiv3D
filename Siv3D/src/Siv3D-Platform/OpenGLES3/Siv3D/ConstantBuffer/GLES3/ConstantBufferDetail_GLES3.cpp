@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -31,13 +32,13 @@ namespace s3d
 
 	bool ConstantBufferDetail_GLES3::update(const void* const data, const size_t size)
 	{
-		if (not m_uniformBuffer)
+		
+		if (not m_uniformBuffer) 
 		{
 			initBuffer();
 		}
 
 		assert(size <= m_bufferSize);
-
 		::glBindBuffer(GL_UNIFORM_BUFFER, m_uniformBuffer);
 		::glBufferSubData(GL_UNIFORM_BUFFER, 0, size, data);
 		::glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -61,5 +62,14 @@ namespace s3d
 		::glBindBuffer(GL_UNIFORM_BUFFER, m_uniformBuffer);
 		::glBufferData(GL_UNIFORM_BUFFER, m_bufferSize, nullptr, GL_DYNAMIC_DRAW);
 		::glBindBuffer(GL_UNIFORM_BUFFER, 0);
+	}
+
+	void ConstantBufferDetail_GLES3::destroy()
+	{
+		if (m_uniformBuffer) 
+		{
+			::glDeleteBuffers(1, &m_uniformBuffer);
+			m_uniformBuffer = 0;
+		}
 	}
 }

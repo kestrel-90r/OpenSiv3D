@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -38,6 +39,14 @@ namespace s3d
 		m_meshes << Mesh{ MeshData::Cone({0,0,0}, 1.0, 1.0, 64) };
 		m_meshes << Mesh{ MeshData::Hemisphere({0,0,0}, 1.0, 40, 20) };
 	}
+
+# if SIV3D_PLATFORM(ANDROID)
+    void CPrimitiveMesh::deinit()
+    {
+        LOG_SCOPED_TRACE(U"CPrimitiveMesh::deinit()");
+        m_meshes.clear();
+    }
+#endif
 
 	const Mesh& CPrimitiveMesh::getMesh(const PrimitiveMeshType meshType) const noexcept
 	{

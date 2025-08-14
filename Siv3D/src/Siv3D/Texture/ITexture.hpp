@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -22,6 +23,12 @@ namespace s3d
 		static ISiv3DTexture* Create();
 
 		virtual ~ISiv3DTexture() = default;
+
+# if SIV3D_PLATFORM(ANDROID)
+		virtual void init() = 0;
+
+		virtual void deinit() = 0;
+#endif
 
 		virtual void updateAsyncTextureLoad(size_t maxUpdate) = 0;
 

@@ -4,269 +4,464 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
 //-----------------------------------------------
 
-# include <Siv3D/System.hpp>
-# include <Siv3D/EngineLog.hpp>
-# include "WebcamDetail.hpp"
+#include <Siv3D/System.hpp>
+#include <Siv3D/EngineLog.hpp>
+#include "WebcamDetail.hpp"
+
+# if SIV3D_PLATFORM(ANDROID)
+
+#include <Siv3D/DynamicTexture.hpp>
+#include <jni.h>
+
+// Android implementation using CameraSystem
+extern "C" {
+    // JNI entry points exposed in AndroidMain.cpp
+    jboolean Java_com_kestrel_opensiv3d_MainActivity_startNdkCamera(JNIEnv*, jobject);
+    jboolean Java_com_kestrel_opensiv3d_MainActivity_stopNdkCamera(JNIEnv*, jobject);
+}
+
+namespace CameraSystem 
+{
+    bool hasNewFrame();
+    s3d::Image getLatestFrame();
+    int64_t getLastFrameTimestamp();
+}
+
+namespace s3d 
+{
+
+    static std::atomic<int> g_ndkCameraUsers{0};
+
+    Webcam::WebcamDetail::WebcamDetail() {}
+
+    Webcam::WebcamDetail::~WebcamDetail() { close(); }
+
+    bool Webcam::WebcamDetail::open(const uint32 cameraIndex) 
+    {
+        LOG_SCOPED_TRACE(U"Webcam::WebcamDetail(Android)::open(cameraIndex = {})"_fmt(cameraIndex));
+        m_cameraIndex = cameraIndex;
+        m_captureResolution = Size{ 0, 0 };
+        m_image.clear();
+        m_newFrameCount = 0;
+        return true;
+    }
+
+    void Webcam::WebcamDetail::close() 
+    {
+        if (m_thread.joinable()) 
+        {
+            m_abort = true;
+            m_thread.join();
+        }
+
+        if (m_started) 
+        {
+            const int left = --g_ndkCameraUsers;
+            if (left <= 0) 
+            {
+                Java_com_kestrel_opensiv3d_MainActivity_stopNdkCamera(nullptr, nullptr);
+            }
+            m_started = false;
+        }
+        m_cameraIndex = 0;
+        m_newFrameCount = 0;
+        m_captureResolution = Size{ 0, 0 };
+        m_image.clear();
+    }
+
+    bool Webcam::WebcamDetail::isOpen() 
+    { 
+    	return true; 
+    }
+
+    bool Webcam::WebcamDetail::start() 
+    {
+        if (m_thread.joinable()) return true;
+        if (m_started) return true;
+
+        if (g_ndkCameraUsers.fetch_add(1) == 0) 
+        {
+            jboolean ok = Java_com_kestrel_opensiv3d_MainActivity_startNdkCamera(nullptr, nullptr);
+            if (ok != JNI_TRUE) 
+            {
+                g_ndkCameraUsers.fetch_sub(1);
+                return false;
+            }
+        }
+        m_started = true;
+        m_abort = false;
+        m_thread = std::thread{ Run, std::ref(*this) };
+        return true;
+    }
+
+    bool Webcam::WebcamDetail::isActive() const { return m_thread.joinable(); }
+
+    uint32 Webcam::WebcamDetail::cameraIndex() const { return m_cameraIndex; }
+
+    Size Webcam::WebcamDetail::getResolution() const { return m_captureResolution; }
+
+    bool Webcam::WebcamDetail::setResolution(const Size& /*resolution*/) 
+    {
+        return false;
+    }
+
+    bool Webcam::WebcamDetail::hasNewFrame() 
+    {
+        return (0 < m_newFrameCount);
+    }
+
+    bool Webcam::WebcamDetail::getFrame(Image& image) 
+    {
+        if (not isActive()) 
+        {
+            return false;
+        }
+
+        if (CameraSystem::hasNewFrame()) 
+        {
+            Image latest = CameraSystem::getLatestFrame();
+            if (!latest.isEmpty()) 
+            {
+                std::lock_guard lock{ m_imageMutex };
+                m_image = std::move(latest);
+                m_captureResolution = m_image.size();
+                m_newFrameCount = 1;
+            }
+        }
+
+        if (m_captureResolution == Size{0,0} ) 
+        {
+            return false;
+        }
+
+        image = m_image; // copy out
+        {
+            std::lock_guard lock{ m_imageMutex };
+            m_newFrameCount = 0;
+        }
+        return true;
+    }
+
+    bool Webcam::WebcamDetail::getFrame(DynamicTexture& texture) 
+    {
+        if (not isActive()) 
+        {
+            return false;
+        }
+        
+        if (CameraSystem::hasNewFrame()) 
+        {
+            Image latest = CameraSystem::getLatestFrame();
+            if (!latest.isEmpty()) 
+            {
+                std::lock_guard lock{ m_imageMutex };
+                m_image = std::move(latest);
+                m_captureResolution = m_image.size();
+                m_newFrameCount = 1;
+            }
+        }
+
+        if (m_captureResolution == Size{0,0} ) 
+        {
+            return false;
+        }
+
+        bool result = texture.fill(m_image);
+        {
+            std::lock_guard lock{ m_imageMutex };
+            m_newFrameCount = 0;
+        }
+        return result;
+    }
+
+    void Webcam::WebcamDetail::Run(WebcamDetail& webcam) 
+    {
+        // Pull frames from CameraSystem periodically
+        while (not webcam.m_abort) 
+        {
+            if (CameraSystem::hasNewFrame()) 
+            {
+                Image latest = CameraSystem::getLatestFrame();
+                if (!latest.isEmpty()) 
+                {
+                    std::lock_guard lock{ webcam.m_imageMutex };
+                    webcam.m_image = std::move(latest);
+                    webcam.m_captureResolution = webcam.m_image.size();
+                    ++webcam.m_newFrameCount;
+                }
+            } 
+            else 
+            {
+                System::Sleep(5);
+            }
+        }
+    }
+}
+
+#else
 
 namespace s3d
 {
-	namespace detail
-	{
-		void CopyFrame(const cv::Mat_<cv::Vec3b>& src, Image& dst)
-		{
-			const size_t num_pixels = dst.num_pixels();
-			const uint8* pSrc = src.data;
-			uint8* pDst = dst.dataAsUint8();
+    namespace detail
+    {
+        void CopyFrame(const cv::Mat_<cv::Vec3b>& src, Image& dst)
+        {
+            const size_t num_pixels = dst.num_pixels();
+            const uint8* pSrc = src.data;
+            uint8* pDst = dst.dataAsUint8();
 
-			if (num_pixels % 4 == 0)
-			{
-				const size_t count = (num_pixels / 4);
+            if (num_pixels % 4 == 0)
+            {
+                const size_t count = (num_pixels / 4);
 
-				for (size_t i = 0; i < count; ++i)
-				{
-					pDst[2] = pSrc[0];
-					pDst[1] = pSrc[1];
-					pDst[0] = pSrc[2];
+                for (size_t i = 0; i < count; ++i)
+                {
+                    pDst[2] = pSrc[0];
+                    pDst[1] = pSrc[1];
+                    pDst[0] = pSrc[2];
 
-					pDst[6] = pSrc[3];
-					pDst[5] = pSrc[4];
-					pDst[4] = pSrc[5];
+                    pDst[6] = pSrc[3];
+                    pDst[5] = pSrc[4];
+                    pDst[4] = pSrc[5];
 
-					pDst[10] = pSrc[6];
-					pDst[9] = pSrc[7];
-					pDst[8] = pSrc[8];
+                    pDst[10] = pSrc[6];
+                    pDst[9] = pSrc[7];
+                    pDst[8] = pSrc[8];
 
-					pDst[14] = pSrc[9];
-					pDst[13] = pSrc[10];
-					pDst[12] = pSrc[11];
+                    pDst[14] = pSrc[9];
+                    pDst[13] = pSrc[10];
+                    pDst[12] = pSrc[11];
 
-					pDst += 16;
-					pSrc += 12;
-				}
-			}
-			else
-			{
-				for (size_t i = 0; i < num_pixels; ++i)
-				{
-					pDst[2] = pSrc[0];
-					pDst[1] = pSrc[1];
-					pDst[0] = pSrc[2];
+                    pDst += 16;
+                    pSrc += 12;
+                }
+            }
+            else
+            {
+                for (size_t i = 0; i < num_pixels; ++i)
+                {
+                    pDst[2] = pSrc[0];
+                    pDst[1] = pSrc[1];
+                    pDst[0] = pSrc[2];
 
-					pDst += 4;
-					pSrc += 3;
-				}
-			}
-		}
-	}
+                    pDst += 4;
+                    pSrc += 3;
+                }
+            }
+        }
+    }
 
-	Webcam::WebcamDetail::WebcamDetail() {}
+    Webcam::WebcamDetail::WebcamDetail() {}
 
-	Webcam::WebcamDetail::~WebcamDetail()
-	{
-		close();
-	}
+    Webcam::WebcamDetail::~WebcamDetail()
+    {
+        close();
+    }
 
-	bool Webcam::WebcamDetail::open(const uint32 cameraIndex)
-	{
-		LOG_SCOPED_TRACE(U"Webcam::WebcamDetail::open(cameraIndex = {})"_fmt(cameraIndex));
+    bool Webcam::WebcamDetail::open(const uint32 cameraIndex)
+    {
+        LOG_SCOPED_TRACE(U"Webcam::WebcamDetail::open(cameraIndex = {})"_fmt(cameraIndex));
 
-		close();
+        close();
 
-		if (not m_capture.open(static_cast<int32>(cameraIndex)))
-		{
-			LOG_ERROR(U"cv::VideoCapture::oepn({}) failed"_fmt(cameraIndex));
-			
-			return false;
-		}
+        if (not m_capture.open(static_cast<int32>(cameraIndex)))
+        {
+            LOG_ERROR(U"cv::VideoCapture::oepn({}) failed"_fmt(cameraIndex));
+            
+            return false;
+        }
 
-		LOG_INFO(U"cv::VideoCapture::oepn({}) succeeded"_fmt(cameraIndex));
+        LOG_INFO(U"cv::VideoCapture::oepn({}) succeeded"_fmt(cameraIndex));
 
-		m_cameraIndex = cameraIndex;
+        m_cameraIndex = cameraIndex;
 
-		{
-			m_captureResolution.set(
-				static_cast<int32>(m_capture.get(cv::CAP_PROP_FRAME_WIDTH)),
-				static_cast<int32>(m_capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
-			
-			m_image = Image{ m_captureResolution, Color{ 255 } };
-		}
+        {
+            m_captureResolution.set(
+                static_cast<int32>(m_capture.get(cv::CAP_PROP_FRAME_WIDTH)),
+                static_cast<int32>(m_capture.get(cv::CAP_PROP_FRAME_HEIGHT)));
+            
+            m_image = Image{ m_captureResolution, Color{ 255 } };
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	void Webcam::WebcamDetail::close()
-	{
-		if (not m_capture.isOpened())
-		{
-			return;
-		}
+    void Webcam::WebcamDetail::close()
+    {
+        if (not m_capture.isOpened())
+        {
+            return;
+        }
 
-		if (not m_thread.joinable())
-		{
-			return;
-		}
+        if (not m_thread.joinable())
+        {
+            return;
+        }
 
-		m_abort = true;
+        m_abort = true;
 
-		m_thread.join();
-		{
-			m_abort = false;
-			m_capture.release();
-			m_cameraIndex = 0;
-			m_newFrameCount = 0;
-			m_captureResolution.set(0, 0);
-		}
-	}
+        m_thread.join();
+        {
+            m_abort = false;
+            m_capture.release();
+            m_cameraIndex = 0;
+            m_newFrameCount = 0;
+            m_captureResolution.set(0, 0);
+        }
+    }
 
-	bool Webcam::WebcamDetail::isOpen()
-	{
-		return m_capture.isOpened();
-	}
+    bool Webcam::WebcamDetail::isOpen()
+    {
+        return m_capture.isOpened();
+    }
 
-	bool Webcam::WebcamDetail::start()
-	{
-		if (not m_capture.isOpened())
-		{
-			return false;
-		}
+    bool Webcam::WebcamDetail::start()
+    {
+        if (not m_capture.isOpened())
+        {
+            return false;
+        }
 
-		// すでに start 後の場合は何もしない
-		if (m_thread.joinable())
-		{
-			return true;
-		}
+        // すでに start 後の場合は何もしない
+        if (m_thread.joinable())
+        {
+            return true;
+        }
 
-		// キャプチャスレッドを起動
-		{
-			m_thread = std::thread{ Run, std::ref(*this) };
+        // キャプチャスレッドを起動
+        {
+            m_thread = std::thread{ Run, std::ref(*this) };
 
-			return true;
-		}
-	}
+            return true;
+        }
+    }
 
-	bool Webcam::WebcamDetail::isActive() const
-	{
-		return m_thread.joinable();
-	}
+    bool Webcam::WebcamDetail::isActive() const
+    {
+        return m_thread.joinable();
+    }
 
-	uint32 Webcam::WebcamDetail::cameraIndex() const
-	{
-		return m_cameraIndex;
-	}
+    uint32 Webcam::WebcamDetail::cameraIndex() const
+    {
+        return m_cameraIndex;
+    }
 
-	Size Webcam::WebcamDetail::getResolution() const
-	{
-		return m_captureResolution;
-	}
+    Size Webcam::WebcamDetail::getResolution() const
+    {
+        return m_captureResolution;
+    }
 
-	bool Webcam::WebcamDetail::setResolution(const Size& resolution)
-	{
-		if (not m_capture.isOpened())
-		{
-			return false;
-		}
+    bool Webcam::WebcamDetail::setResolution(const Size& resolution)
+    {
+        if (not m_capture.isOpened())
+        {
+            return false;
+        }
 
-		// start 後は変更できない
-		if (m_thread.joinable())
-		{
-			return false;
-		}
+        // start 後は変更できない
+        if (m_thread.joinable())
+        {
+            return false;
+        }
 
-		// すでに同じ解像度が設定されている
-		if (resolution == m_captureResolution)
-		{
-			return true;
-		}
+        // すでに同じ解像度が設定されている
+        if (resolution == m_captureResolution)
+        {
+            return true;
+        }
 
-		if ((not m_capture.set(cv::CAP_PROP_FRAME_WIDTH, resolution.x))
-			|| (not m_capture.set(cv::CAP_PROP_FRAME_HEIGHT, resolution.y)))
-		{
-			m_capture.set(cv::CAP_PROP_FRAME_WIDTH, m_captureResolution.x);
-			m_capture.set(cv::CAP_PROP_FRAME_HEIGHT, m_captureResolution.y);
-			return false;
-		}
-		else
-		{
-			m_capture >> m_frame;
-			m_captureResolution.set(m_frame.cols, m_frame.rows);
-			m_image = Image{ m_captureResolution, Color{ 255 } };
-			return (m_captureResolution == resolution);
-		}
-	}
+        if ((not m_capture.set(cv::CAP_PROP_FRAME_WIDTH, resolution.x))
+            || (not m_capture.set(cv::CAP_PROP_FRAME_HEIGHT, resolution.y)))
+        {
+            m_capture.set(cv::CAP_PROP_FRAME_WIDTH, m_captureResolution.x);
+            m_capture.set(cv::CAP_PROP_FRAME_HEIGHT, m_captureResolution.y);
+            return false;
+        }
+        else
+        {
+            m_capture >> m_frame;
+            m_captureResolution.set(m_frame.cols, m_frame.rows);
+            m_image = Image{ m_captureResolution, Color{ 255 } };
+            return (m_captureResolution == resolution);
+        }
+    }
 
-	bool Webcam::WebcamDetail::hasNewFrame()
-	{
-		std::lock_guard lock{ m_imageMutex };
+    bool Webcam::WebcamDetail::hasNewFrame()
+    {
+        std::lock_guard lock{ m_imageMutex };
 
-		return (0 < m_newFrameCount);
-	}
+        return (0 < m_newFrameCount);
+    }
 
-	bool Webcam::WebcamDetail::getFrame(Image& image)
-	{
-		if (not isActive())
-		{
-			return false;
-		}
+    bool Webcam::WebcamDetail::getFrame(Image& image)
+    {
+        if (not isActive())
+        {
+            return false;
+        }
 
-		image.resize(m_captureResolution);
-		{
-			std::lock_guard lock{ m_imageMutex };
+        image.resize(m_captureResolution);
+        {
+            std::lock_guard lock{ m_imageMutex };
 
-			std::memcpy(image.data(), m_image.data(), image.size_bytes());
+            std::memcpy(image.data(), m_image.data(), image.size_bytes());
 
-			m_newFrameCount = 0;
-		}
+            m_newFrameCount = 0;
+        }
 
-		return true;
-	}
+        return true;
+    }
 
-	bool Webcam::WebcamDetail::getFrame(DynamicTexture& texture)
-	{
-		if (not isActive())
-		{
-			return false;
-		}
+    bool Webcam::WebcamDetail::getFrame(DynamicTexture& texture)
+    {
+        if (not isActive())
+        {
+            return false;
+        }
 
-		{
-			std::lock_guard lock{ m_imageMutex };
+        {
+            std::lock_guard lock{ m_imageMutex };
 
-			const bool result = texture.fill(m_image);
+            const bool result = texture.fill(m_image);
 
-			m_newFrameCount = 0;
+            m_newFrameCount = 0;
 
-			return result;
-		}
-	}
-	
-	void Webcam::WebcamDetail::Run(WebcamDetail& webcam)
-	{
-		auto& capture = webcam.m_capture;
+            return result;
+        }
+    }
+    
+    void Webcam::WebcamDetail::Run(WebcamDetail& webcam)
+    {
+        auto& capture = webcam.m_capture;
 
-		while (not webcam.m_abort)
-		{
-			if (not capture.grab())
-			{
-				System::Sleep(5);
-				continue;
-			}
+        while (not webcam.m_abort)
+        {
+            if (not capture.grab())
+            {
+                System::Sleep(5);
+                continue;
+            }
 
-			if (not capture.retrieve(webcam.m_frame))
-			{
-				continue;
-			}
+            if (not capture.retrieve(webcam.m_frame))
+            {
+                continue;
+            }
 
-			{
-				std::lock_guard lock{ webcam.m_imageMutex };
+            {
+                std::lock_guard lock{ webcam.m_imageMutex };
 
-				detail::CopyFrame(webcam.m_frame, webcam.m_image);
+                detail::CopyFrame(webcam.m_frame, webcam.m_image);
 
-				++webcam.m_newFrameCount;
-			}
-		}
-	}
+                ++webcam.m_newFrameCount;
+            }
+        }
+    }
 }
+
+#endif // __ANDROID__

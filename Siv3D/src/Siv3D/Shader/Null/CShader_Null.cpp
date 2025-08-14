@@ -4,6 +4,7 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
+//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
@@ -31,6 +32,12 @@ namespace s3d
 	{
 		m_emptyPS = std::make_unique<PixelShader>();
 	}
+    # if SIV3D_PLATFORM(ANDROID)
+    void CShader_Null::deinit()
+    {
+		// do nothing
+    }
+	#endif
 
 	VertexShader::IDType CShader_Null::createVSFromFile(FilePathView, StringView, const Array<ConstantBufferBinding>&)
 	{

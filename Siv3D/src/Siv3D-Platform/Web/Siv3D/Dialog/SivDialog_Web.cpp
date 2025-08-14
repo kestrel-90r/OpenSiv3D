@@ -83,7 +83,7 @@ namespace s3d
 		{
 			const auto fileName = FileSystem::FileName(defaultPath);
 			detail::siv3dSaveDialog(fileName.narrow().c_str());
-			
+
 			return FilePath(U"/dev/save");
 		}
 

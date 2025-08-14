@@ -1,0 +1,14 @@
+# opusurl installed pkg-config file
+
+prefix=/data/data/com.termux/files/usr
+exec_prefix=${prefix}
+libdir=/data/data/com.termux/files/usr/lib
+includedir=${prefix}/include
+
+Name: opusurl
+Description: High-level Opus decoding library, URL support
+Version: 0.12
+Requires: opusfile
+Requires.private: 
+Conflicts:
+Libs: -L${libdir} -lopusurl
