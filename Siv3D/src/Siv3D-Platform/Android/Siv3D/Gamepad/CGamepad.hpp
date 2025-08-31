@@ -4,63 +4,53 @@
 //
 //	Copyright (c) 2008-2022 Ryo Suzuki
 //	Copyright (c) 2016-2022 OpenSiv3D Project
-//	Copyright (c) 2025      kestrel-90r
 //
 //	Licensed under the MIT License.
 //
 //-----------------------------------------------
 
-#pragma once
-#include <Siv3D/Gamepad/IGamepad.hpp>
-#include <Siv3D/Gamepad/GamepadState.hpp>
-#include <Siv3D/Array.hpp>
+# pragma once
+# include <Siv3D/Gamepad/IGamepad.hpp>
+# include <Siv3D/Gamepad/GamepadState.hpp>
+# include <android/input.h>
+# include <unordered_map>
 
 namespace s3d
 {
-    class CGamepad final : public ISiv3DGamepad
-    {
-    private:
-        struct GamepadState
-        {
-            bool connected = false;
-            GamepadInfo info;
-            Array<double> axes;
-            Array<InputState> buttons;
-            Array<InputState> povs;
-            Optional<double> povDegree;
+	class CGamepad final : public ISiv3DGamepad
+	{
+	public:
+		CGamepad();
+		~CGamepad() override;
 
-            void clear()
-            {
-                connected = false;
-                info = {};
-                axes.clear();
-                buttons.clear();
-                povs.clear();
-                povDegree.reset();
-            }
-        };
+		void init() override;
+		void update() override;
 
-        std::array<GamepadState, Gamepad.MaxPlayerCount> m_states;
-        std::array<detail::Gamepad_impl, Gamepad.MaxPlayerCount> m_inputs;
+		Array<GamepadInfo> enumerate() override;
+		bool isConnected(size_t playerIndex) override;
+		const GamepadInfo& getInfo(size_t playerIndex) override;
 
-        bool isGamepadConnected(uint32 playerIndex) const;
-        void updateGamepadAxes(uint32 playerIndex, GamepadState &state);
-        void updateGamepadButtons(uint32 playerIndex, GamepadState &state);
-        void updateGamepadPOV(uint32 playerIndex, GamepadState &state);
+		bool down(size_t playerIndex, uint32 index) override;
+		bool pressed(size_t playerIndex, uint32 index) override;
+		bool up(size_t playerIndex, uint32 index) override;
+		Duration pressedDuration(size_t playerIndex, uint32 index) override;
+		Optional<int32> povDegree(size_t playerIndex) override;
+		const detail::Gamepad_impl& getInput(size_t playerIndex) override;
 
-    public:
-        CGamepad();
-        ~CGamepad() override;
-        void init() override;
-        void update() override;
-        Array<GamepadInfo> enumerate() override;
-        bool isConnected(size_t playerIndex) override;
-        const GamepadInfo &getInfo(size_t playerIndex) override;
-        bool down(size_t playerIndex, uint32 buttonIndex) override;
-        bool pressed(size_t playerIndex, uint32 buttonIndex) override;
-        bool up(size_t playerIndex, uint32 buttonIndex) override;
-        Duration pressedDuration(size_t playerIndex, uint32 buttonIndex) override;
-        Optional<int32> povDegree(size_t playerIndex) override;
-        const detail::Gamepad_impl &getInput(size_t playerIndex) override;
-    };
+		// Android固有のメソッド
+		void handleKeyEvent(int32 keyCode, int32 action, int32 deviceId);
+		void handleMotionEvent(int32 source, int32 action, float x, float y, int32 deviceId);
+
+	private:
+		std::array<GamepadState, Gamepad.MaxPlayerCount> m_states;
+		std::array<detail::Gamepad_impl, Gamepad.MaxPlayerCount> m_inputs;
+		
+		// Android固有のメンバー
+		std::unordered_map<int32, size_t> m_deviceToPlayerMap; // deviceId -> playerIndex
+		std::unordered_map<int32, int32> m_keyCodeToButtonMap; // keyCode -> button index
+		
+		void initializeKeyMappings();
+		size_t getOrCreatePlayerIndex(int32 deviceId);
+		void updateAxesFromMotionEvent(size_t playerIndex, float x, float y);
+	};
 }

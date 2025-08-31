@@ -20,7 +20,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputConnection
 import android.view.inputmethod.InputMethodManager
 import android.view.WindowManager
-
+import android.util.DisplayMetrics 
 import android.util.Size
 import android.Manifest
 import android.content.pm.PackageManager
@@ -51,13 +51,16 @@ class MainActivity : GameActivity() {
         private const val TAG = "MainActivity"
         private const val USE_NDK_CAMERA = true
         
-        // Action constants for sending to native code
         /// @brief タッチダウンのアクションを示す定数
         private const val ACTION_DOWN = 0
         /// @brief タッチアップのアクションを示す定数
         private const val ACTION_UP = 1
         /// @brief タッチムーブのアクションを示す定数
         private const val ACTION_MOVE = 2
+        /// @brief ポインターダウンのアクションを示す定数（マルチタッチ用）
+        private const val ACTION_POINTER_DOWN = 5
+        /// @brief ポインターアップのアクションを示す定数（マルチタッチ用）
+        private const val ACTION_POINTER_UP = 6
         
         // キーコード定数
         /// @brief 全角/半角キーのキーコード
@@ -157,6 +160,13 @@ class MainActivity : GameActivity() {
     /// @param x X座標
     /// @param y Y座標
     private external fun onTouchEventNative(action: Int, x: Int, y: Int)
+
+    /// @brief マルチタッチイベントをネイティブ層に通知します
+    /// @param action タッチアクション（DOWN, UP, MOVE）
+    /// @param pointerId ポインターID
+    /// @param x X座標
+    /// @param y Y座標
+    private external fun onMultiTouchEventNative(action: Int, pointerId: Int, x: Int, y: Int)
     
     /// @brief マウスイベントとしてネイティブ層に通知します
     /// @details タッチイベントをマウスイベントとしても解釈し、カーソル位置の更新などに利用します
@@ -257,16 +267,16 @@ class MainActivity : GameActivity() {
         // 最後にシステムUIを非表示
         hideSystemUi()
 
-        // 画面サイズ取得
-        val displayMetrics = resources.displayMetrics
-        pendingWidth = displayMetrics.widthPixels
-        pendingHeight = displayMetrics.heightPixels
-        pendingDensity = displayMetrics.density
-        
-        Log.d(TAG, "Screen size: $pendingWidth x $pendingHeight, density: $pendingDensity")
+        // 画面サイズ取得（ナビゲーションバーを含む実際の画面サイズ）
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getRealMetrics(displayMetrics)
+        val realWidth = displayMetrics.widthPixels
+        val realHeight = displayMetrics.heightPixels
+
+        Log.d(TAG, "Real screen size: $realWidth x $realHeight, density: ${displayMetrics.density}")
         
         // Send initial frame buffer size immediately (AGDK-compatible)
-        SendFrameBufferSizeNative(pendingWidth, pendingHeight)
+        SendFrameBufferSizeNative(realWidth, realHeight)
         hasSentInitialFrameBufferSize = true
     }
 
@@ -604,49 +614,56 @@ class MainActivity : GameActivity() {
     /// @param event タッチイベントオブジェクト
     /// @return イベントを処理した場合はtrue
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        // タッチイベントをSiv3Dのマウス入力システムに転送
-        val action = when(event.action and MotionEvent.ACTION_MASK) {
+        // イベントタイプを取得
+        val actionMasked = event.actionMasked
+        
+        // アクションタイプをSiv3D定数に変換
+        val action = when(actionMasked) {
             MotionEvent.ACTION_DOWN -> ACTION_DOWN
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> ACTION_UP
             MotionEvent.ACTION_MOVE -> ACTION_MOVE
-            else -> return super.onTouchEvent(event)
+            MotionEvent.ACTION_POINTER_DOWN -> ACTION_POINTER_DOWN
+            MotionEvent.ACTION_POINTER_UP -> ACTION_POINTER_UP
+            else -> return false
         }
         
-        // GameActivityのSurfaceViewを取得し、正確なビューサイズを取得
-        val rootView = findViewById<ViewGroup>(android.R.id.content)
-        val surfaceView = rootView.getChildAt(0)
-        
-        if (surfaceView != null) {
-            // タッチ座標をビューのローカル座標に変換
-            val viewX = event.x
-            val viewY = event.y
-            
-            // ビューのサイズを取得
-            val viewWidth = surfaceView.width.toFloat()
-            val viewHeight = surfaceView.height.toFloat()
-            
-            // タッチ座標をそのまま整数に変換
-            val x = viewX.toInt()
-            val y = viewY.toInt()
-            
-            // ネイティブコードにタッチイベントを転送
-            onTouchEventNative(action, x, y)
-            
-            // また、カーソル位置更新のためにonMouseEventNativeも呼び出す
-            onMouseEventNative(action, x, y)
+        // MOVE イベントの場合は、全てのアクティブなポインターを処理
+        if (actionMasked == MotionEvent.ACTION_MOVE) {
+            // すべてのポインターを処理
+            for (i in 0 until event.pointerCount) {
+                val id = event.getPointerId(i)
+                val x = event.getX(i)
+                val y = event.getY(i)
+                
+                // 各ポインターをJNIに送信
+                onMultiTouchEventNative(ACTION_MOVE, id, x.toInt(), y.toInt())
+            }
         } else {
-            // SurfaceViewが見つからない場合は生の座標をそのまま使用
-	        val x = event.x.toInt()
-	        val y = event.y.toInt()
-	        
-	        Log.d(TAG, "Touch event: action=$action, x=$x, y=$y")
-	        onTouchEventNative(action, x, y)
-            onMouseEventNative(action, x, y)
-	    }
-
-        // GameActivityでの処理を妨げないためfalseを返さない
-        return super.onTouchEvent(event)
+            // DOWN/UP イベントの場合は、対象のポインターのみ処理
+            val pointerIndex = when(actionMasked) {
+                MotionEvent.ACTION_POINTER_DOWN, MotionEvent.ACTION_POINTER_UP -> {
+                    (event.action and MotionEvent.ACTION_POINTER_INDEX_MASK) shr 
+                        MotionEvent.ACTION_POINTER_INDEX_SHIFT
+                }
+                else -> 0 // ACTION_DOWN, ACTION_UPの場合は常に0
+            }
+            
+            val pointerId = event.getPointerId(pointerIndex)
+            val x = event.getX(pointerIndex)
+            val y = event.getY(pointerIndex)
+            
+            // C++側に送信
+            onMultiTouchEventNative(action, pointerId, x.toInt(), y.toInt())
+        }
+        
+        // 主ポインター（インデックス0）の位置を取得してカーソル更新
+        val x = event.getX(0).toInt()
+        val y = event.getY(0).toInt()
+        onCursorUpdateNative(x, y)
+        
+        return true
     }
+
 
     /// @brief システムUI（ナビゲーションバー、ステータスバー）を非表示にします
     /// @details イマーシブモードを有効にし、全画面表示を実現します
@@ -678,7 +695,8 @@ class MainActivity : GameActivity() {
     /// @brief 現在の画面サイズと密度をネイティブ層に送信します
     /// @details Androidフレームワーク用とSiv3Dエンジン(CWindow)用の両方の関数を呼び出します
     private fun sendFrameBufferSizeToNative() {
-        val displayMetrics = resources.displayMetrics
+        val displayMetrics = DisplayMetrics()
+        windowManager.defaultDisplay.getRealMetrics(displayMetrics)
         val width = displayMetrics.widthPixels
         val height = displayMetrics.heightPixels
         val density = displayMetrics.density

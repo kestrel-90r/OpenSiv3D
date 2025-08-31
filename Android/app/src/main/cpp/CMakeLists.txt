@@ -65,11 +65,11 @@ set_source_files_properties(
     COMPILE_FLAGS "-include ${S3D_ROOT}/Siv3D/src/ThirdParty/Oniguruma/oniguruma.h"
 )
 
-include_directories(${S3D_ROOT}/Siv3D/src/Siv3D-Platform/Android/Siv3D/AGDK)
+include_directories(${S3D_ROOT}/Siv3D/src/ThirdParty/Android/AGDK)
 add_library(agdk STATIC
-        ${S3D_ROOT}/Siv3D/src/Siv3D-Platform/Android/Siv3D/AGDK/GameActivity.cpp
-        ${S3D_ROOT}/Siv3D/src/Siv3D-Platform/Android/Siv3D/AGDK/GameActivityEvents.cpp
-        ${S3D_ROOT}/Siv3D/src/Siv3D-Platform/Android/Siv3D/AGDK/game-text-input/gametextinput.cpp
+        ${S3D_ROOT}/Siv3D/src/ThirdParty/Android/AGDK/GameActivity.cpp
+        ${S3D_ROOT}/Siv3D/src/ThirdParty/Android/AGDK/GameActivityEvents.cpp
+        ${S3D_ROOT}/Siv3D/src/ThirdParty/Android/AGDK/game-text-input/gametextinput.cpp
 )
 include_directories(${S3D_ROOT}/Dependencies/boost_1_74_0/)
 include_directories(../3rd/ffmpeg/usr/include)
@@ -541,7 +541,8 @@ add_library(opensiv3d SHARED
         ${S3D_ROOT}/Siv3D/src/ThirdParty/zstd/dictBuilder/zdict.c
 
         ${S3D_ROOT}/Siv3D/src/Siv3D-Platform/Android/Siv3D/Siv3DMain.cpp
-        ${S3D_ROOT}/Siv3D/src/Siv3D-Platform/Android/Siv3D/AndroidMain.cpp
+        ${S3D_ROOT}/Siv3D/src/ThirdParty/Android/AndroidMain.cpp
+        ${S3D_ROOT}/Siv3D/src/ThirdParty/Android/VPad.cpp
 
         ${S3D_ROOT}/Siv3D/src/Siv3D-Platform/Android/Siv3D/Audio/SoundTouchFunctions.cpp
         ${S3D_ROOT}/Siv3D/src/Siv3D-Platform/Android/Siv3D/AudioCodec/AudioCodecFactory.cpp
@@ -1183,7 +1184,6 @@ add_library(opensiv3d SHARED
         ${S3D_ROOT}/Siv3D/src/Siv3D/ZIPReader/SivZIPReader.cpp
         ${S3D_ROOT}/Siv3D/src/Siv3D/ZIPReader/ZIPReaderDetail.cpp
         ${S3D_ROOT}/Siv3D/src/Siv3D/Zlib/SivZlib.cpp
-
 )
 
 

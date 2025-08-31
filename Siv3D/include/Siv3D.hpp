@@ -1830,6 +1830,7 @@
 # endif
 
 # if SIV3D_PLATFORM(ANDROID)
+    # include "ThirdParty/Android/VPad.hpp"
     bool Init();
 # endif
 

@@ -152,6 +152,37 @@ namespace s3d
         const bool pressed = (action == 0 || action == 2);
         onMouseButtonUpdated(0, pressed);
     }
+
+    // 名前を変更した新しいメソッド
+    void CMouse::updateButtonDown(uint32 index)
+    {
+        if (index >= InputState::MouseButtonCount)
+        {
+            return;
+        }
+        
+        std::lock_guard lock{m_buttonMutex};
+        auto& state = m_buttonsInternal[index];
+        if (state == MouseButtonState::Released)
+        {
+            state = MouseButtonState::Pressed;
+        }
+    }
+
+    void CMouse::updateButtonUp(uint32 index)
+    {
+        if (index >= InputState::MouseButtonCount)
+        {
+            return;
+        }
+        
+        std::lock_guard lock{m_buttonMutex};
+        auto& state = m_buttonsInternal[index];
+        if (state == MouseButtonState::Pressed)
+        {
+            state = MouseButtonState::Tapped;
+        }
+    }
 }
 
 using namespace s3d;

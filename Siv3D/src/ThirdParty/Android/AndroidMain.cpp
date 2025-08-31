@@ -1,13 +1,3 @@
-//-----------------------------------------------
-//
-//	This file is part of the Siv3D Engine.
-//
-//	Copyright (c) 2025 kestrel-90r
-//
-//	Licensed under the MIT License.
-//
-//-----------------------------------------------
-
 #include <jni.h>
 #include <EGL/egl.h>
 #include <GLES2/gl2.h>
@@ -38,13 +28,16 @@
 #include <Siv3D/TextInput/ITextInput.hpp>
 #include <Siv3D/TextInput/CTextInput.hpp>
 #include <Siv3D/Renderer/GLES3/CRenderer_GLES3.hpp>
+#include <Siv3D/Gamepad/CGamepad.hpp>
 
+#include "VPad.hpp"
 #include "AGDK/GameActivity.h"
 #include "AGDK/game-text-input/gametextinput.h"
 
 #define TAG "Siv3D"
 #define LOGI(...) __android_log_print(ANDROID_LOG_INFO, TAG, __VA_ARGS__)
 #define LOGE(...) __android_log_print(ANDROID_LOG_ERROR, TAG, __VA_ARGS__)
+
 
 bool isSiv3DRunning();
 void StartSuspend();
@@ -87,8 +80,12 @@ namespace s3d
             LOGI("Initial initialization executed");
         }
     }
-}
 
+    // 実際の画面サイズを保持する変数を追加
+    int32_t g_RealScreenWidth = 0;
+    int32_t g_RealScreenHeight = 0;
+}
+/*
 void routeTouchEventToSiv3D(int action, int x, int y)
 {
     using namespace s3d;
@@ -102,7 +99,11 @@ void routeTouchEventToSiv3D(int action, int x, int y)
     {
         mouse->onTouchEvent(action, Point{x, y});
     }
+
+    // VPad用のマルチタッチイベント処理（単一タッチの場合はpointerId=0）
+    handleTouchEvent(action, 0, Point{x, y});
 }
+*/
 
 /// フレームバッファサイズを Kotlinから通知
 /// @param env JNI 環境
@@ -113,6 +114,8 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_kestrel_opensiv3d_MainActivity_SendFrameBufferSizeNative(JNIEnv *env, jobject thiz, jint width, jint height)
 {
     LOG_TRACE(U"Java_com_kestrel_opensiv3d_MainActivity_SendFrameBufferSizeNative called {} x {}"_fmt(width, height));
+    s3d::g_RealScreenWidth = width;
+    s3d::g_RealScreenHeight = height;
 
     if (isSiv3DRunning())
     {
@@ -139,6 +142,7 @@ Java_com_kestrel_opensiv3d_MainActivity_SendFrameBufferSizeNative(JNIEnv *env, j
     }
 }
 
+
 /// 単一タッチイベントを Siv3D の Cursor / Mouse へ転送
 /// @param env JNI 環境
 /// @param thiz MainActivity
@@ -148,6 +152,8 @@ Java_com_kestrel_opensiv3d_MainActivity_SendFrameBufferSizeNative(JNIEnv *env, j
 extern "C" JNIEXPORT void JNICALL
 Java_com_kestrel_opensiv3d_MainActivity_onTouchEventNative(JNIEnv *env, jobject /* this */, jint action, jint x, jint y)
 {
+    using namespace s3d;
+
     auto *cursor = dynamic_cast<CCursor *>(SIV3D_ENGINE(Cursor));
     auto *mouse = dynamic_cast<CMouse *>(SIV3D_ENGINE(Mouse));
 
@@ -156,6 +162,20 @@ Java_com_kestrel_opensiv3d_MainActivity_onTouchEventNative(JNIEnv *env, jobject 
 
     if (mouse)
         mouse->onTouchEvent(action, Point{static_cast<int>(x), static_cast<int>(y)});
+}
+
+/// マルチタッチイベントを Siv3D の Cursor / Mouse へ転送
+/// @param env JNI 環境
+/// @param thiz MainActivity
+/// @param action MotionEvent アクション
+/// @param pointerId ポインタID
+/// @param x X 座標（ピクセル）
+/// @param y Y 座標（ピクセル）
+extern "C" JNIEXPORT void JNICALL
+Java_com_kestrel_opensiv3d_MainActivity_onMultiTouchEventNative(JNIEnv *env, jobject /* this */, jint action, jint pointerId, jint x, jint y)
+{
+    using namespace s3d;
+    VPad::getInstance()->HandleTouchEvent(action, pointerId, Point{static_cast<int32>(x), static_cast<int32>(y)});
 }
 
 /// Activity 再開時にアプリの描画/更新をリジューム開始
@@ -176,9 +196,7 @@ extern "C" JNIEXPORT void JNICALL
 Java_com_google_androidgamesdk_GameActivity_onPauseNative(JNIEnv *env, jobject obj, jlong handle)
 {
     LOGI("onPauseNative - Suspending surface");
-
     StartSuspend();
-    LOGI("Suspend requested");
 }
 
 extern "C" void updateNativeWindowHandle(void *windowHandle)
@@ -366,10 +384,13 @@ Java_com_kestrel_opensiv3d_MainActivity_nativeGetCurrentText(JNIEnv *env, jobjec
 /// @return 未使用
 extern "C" void *siv3d_main_thread(void *arg)
 {
-    int32_t width = ANativeWindow_getWidth(s3d::g_NativeWindow);
-    int32_t height = ANativeWindow_getHeight(s3d::g_NativeWindow);
-
-    LOGI("Starting Siv3DMain with surface: %p (%dx%d)", s3d::g_NativeWindow, width, height);
+    
+    // 実際の画面サイズを使用
+    int32_t width = s3d::g_RealScreenWidth;  // 名前空間を追加
+    int32_t height = s3d::g_RealScreenHeight; // 名前空間を追加
+    
+    LOGI("Starting Siv3DMain with surface: %p", s3d::g_NativeWindow);
+    LOGI("Real screen: %dx%d", width, height);
 
     const char *defaultPath = "/android/app";
     char *defaultArgv[] = {const_cast<char *>(defaultPath), nullptr};
@@ -1159,7 +1180,8 @@ Java_com_kestrel_opensiv3d_MainActivity_startNdkCamera(JNIEnv *env, jobject /*th
         .context = nullptr,
         .onActive = onSessionActive,
         .onReady = onSessionReady,
-        .onClosed = onSessionClosed};
+        .onClosed = onSessionClosed
+    };
 
     status = ACameraDevice_createCaptureSession(g_camDevice, g_outputContainer, sessionCallbacks, &g_session);
     if (status != ACAMERA_OK || !g_session)
@@ -1270,10 +1292,10 @@ Java_com_google_androidgamesdk_GameActivity_onSurfaceCreatedNative(
     JNIEnv *env, jobject thiz, jlong /*handle*/, jobject surface)
 {
     LOGI("onSurfaceCreatedNative - Recreating surface");
-    if (g_NativeWindow != nullptr)
+    if (s3d::g_NativeWindow != nullptr)
     {
-        ANativeWindow_release(g_NativeWindow);
-        g_NativeWindow = nullptr;
+        ANativeWindow_release(s3d::g_NativeWindow);
+        s3d::g_NativeWindow = nullptr;
     }
 
     ANativeWindow* window = ANativeWindow_fromSurface(env, surface);
@@ -1283,7 +1305,6 @@ Java_com_google_androidgamesdk_GameActivity_onSurfaceCreatedNative(
         return JNI_FALSE;
     }
 
-    g_NativeWindow = window;
     s3d::g_NativeWindow = window;
     s3d::g_GameActivityHandle = window;
 
@@ -1609,3 +1630,22 @@ Java_com_google_androidgamesdk_GameActivity_onConfigurationChangedNative(
 {
     LOGI("onConfigurationChangedNative");
 }
+
+extern "C" void HandleGamepadKeyEvent(int32 keyCode, int32 action, int32 deviceId)
+{
+    // 正しい名前空間を使用
+    if (auto* gamepad = s3d::Siv3DEngine::Get<ISiv3DGamepad>())
+    {
+        static_cast<s3d::CGamepad*>(gamepad)->handleKeyEvent(keyCode, action, deviceId);
+    }
+}
+
+extern "C" void HandleGamepadMotionEvent(int32 source, int32 action, float x, float y, int32 deviceId)
+{
+    // 正しい名前空間を使用
+    if (auto* gamepad = s3d::Siv3DEngine::Get<ISiv3DGamepad>())
+    {
+        static_cast<s3d::CGamepad*>(gamepad)->handleMotionEvent(source, action, x, y, deviceId);
+    }
+}
+

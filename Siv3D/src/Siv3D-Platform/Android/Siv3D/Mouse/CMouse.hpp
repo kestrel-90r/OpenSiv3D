@@ -81,5 +81,11 @@ namespace s3d
         void onScroll(double v, double h) override;
 
         void onTouchEvent(int action, Point pos);
+
+        void updateButtonDown(uint32 index);
+
+        void updateButtonUp(uint32 index);
+
+
     };
 }

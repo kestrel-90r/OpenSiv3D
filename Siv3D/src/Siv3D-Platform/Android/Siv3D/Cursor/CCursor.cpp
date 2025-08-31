@@ -89,7 +89,8 @@ namespace s3d
 
     void CCursor::setPos(const Point pos)
     {
-        // Androidではカーソル位置の設定は無視
+        detail::m_lastTouchPos = pos;
+        onTouchEvent(pos);
     }
 
     const Mat3x2 &CCursor::getLocalTransform() const noexcept
@@ -151,34 +152,43 @@ namespace s3d
 
     bool CCursor::isClippedToWindow() const noexcept
     {
-        return false; // Androidではクリップは常に無効
+        return m_clipToWindow; 
     }
 
-    void CCursor::clipToWindow(const bool)
+	void CCursor::clipToWindow(const bool clip)
     {
-        // Androidではクリップは無視
+		if (clip == m_clipToWindow)
+		{
+			return;
+		}
+		m_clipToWindow = clip;
+
+
+	}
+
+	void CCursor::requestStyle(const CursorStyle style)
+    {
+		m_requestedCursor = m_systemCursors[FromEnum(style)];
     }
 
-    void CCursor::requestStyle(const CursorStyle)
-    {
-        // Androidではカーソルスタイルは無視
-    }
+	void CCursor::setDefaultStyle(const CursorStyle style)
+	{
+		m_defaultCursor = m_systemCursors[FromEnum(style)];
+	}
+	
+	bool CCursor::registerCursor(const StringView name, const Image& image, const Point hotSpot)
+	{
+		return false;
+	}
 
-    void CCursor::setDefaultStyle(const CursorStyle)
-    {
-        // Androidではカーソルスタイルは無視
-    }
-
-    bool CCursor::registerCursor(const StringView, const Image &, const Point)
-    {
-        // Androidではカスタムカーソルは無視
-        return false;
-    }
-
-    void CCursor::requestStyle(const StringView)
-    {
-        // Androidではカーソルスタイルは無視
-    }
+	void CCursor::requestStyle(const StringView name)
+	{
+		if (auto it = m_customCursors.find(name);
+			it != m_customCursors.end())
+		{
+			m_requestedCursor = it->second.get();
+		}
+	}
 
     void CCursor::updateCursorPos()
     {
