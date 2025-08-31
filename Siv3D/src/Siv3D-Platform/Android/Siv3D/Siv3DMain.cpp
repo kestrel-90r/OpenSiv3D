@@ -251,7 +251,10 @@ void OnResume()
 void StartResume()
 {
     std::lock_guard<std::mutex> lock(g_CallbackMutex);
-    g_isResuming = true;
+    if( g_isRenderingSuspended )
+    {
+        g_isResuming = true;
+    }
 }
 
 /// サスペンド開始処理
