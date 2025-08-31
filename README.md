@@ -2,7 +2,7 @@
 
 <p align="center"><a href="https://siv3d.github.io/"><img src="https://raw.githubusercontent.com/Siv3D/File/master/v6/logo.png" width="480" alt="Siv3D logo"></a></p>
 
-**Siv3D** (OpenSiv3D) is a C++20 framework for **creative coding** (2D/3D games, media art, visualizers, and simulators). Siv3D applications run on **Windows, macOS, Linux, and the Web**.
+**Siv3D** (OpenSiv3D) is a C++20 framework for **creative coding** (2D/3D games, media art, visualizers, and simulators). Siv3D applications run on ** Windows, macOS, Linux, Web and the Android **.
 
 
 ## Main Features
@@ -10,7 +10,7 @@
 - **Graphics**
   - Advanced 2D graphics
   - Basic 3D graphics (Wavefront OBJ, primitive shapes)
-  - Custom vertex / pixel shaders (HLSL, GLSL)
+  - Custom vertex / pixel shaders ( GLSL ES )
   - Text rendering (Bitmap, SDF, MSDF)
   - PNG, JPEG, BMP, SVG, GIF, Animated GIF, TGA, PPM, WebP, TIFF
   - Unicode 14.0 emojis and 7,000+ icons
@@ -30,21 +30,21 @@
 - **Input**
   - Mouse
   - Keyboard
-  - Gamepad
+  - ~~Gamepad~~
   - Webcam
   - Microphone
-  - Joy-Con / Pro Controller
-  - XInput*
+  - ~~Joy-Con / Pro Controller~~
+  - ~~XInput*~~
   - Digital drawing tablet*
-  - Leap Motion*
+  - ~~Leap Motion*~~
 - **Window**
   - Fullscreen mode
   - High DPI support
-  - Window styles (sizable, borderless)
-  - File dialog
-  - Drag & drop
-  - Message box
-  - Toast notification*
+  - ~~Window styles (sizable, borderless)~~
+  - ~~File dialog~~
+  - ~~Drag & drop~~
+  - ~~Message box~~
+  - ~~Toast notification*~~
 - **Network and communication**
   - HTTP client
   - Multiplayer (with Photon SDK)
@@ -67,7 +67,7 @@
   - Perlin noise
   - Math parser
   - Navigation mesh
-  - Extended arithmetic types (`HalfFloat`, `int128`, `uint128`, `BigInt`, `BigFloat`)
+  - ~~Extended arithmetic types (`HalfFloat`, `int128`, `uint128`, `BigInt`, `BigFloat`)~~
 - **String and Text Processing**
   - Advanced String class (`String`, `StringView`)
   - Unicode conversion
@@ -85,8 +85,8 @@
   - Asynchronous asset file streaming
   - Data compression (zlib, Zstandard)
   - Transitions between scenes
-  - File system
-  - Directory watcher
+  - ~~File system~~
+  - ~~Directory watcher~~
   - QR code reader / writer
   - GeoJSON
   - Date and time
@@ -96,278 +96,208 @@
   - UUID
   - Child process
   - Clipboard
-  - Power status
-  - Scripting (AngelScript)
+  - ~~Power status~~
+  - ~~Scripting (AngelScript)~~
 
 <small>* Some features are limited to specific platforms</small>
 
-## Downloads
 
-### ✨ v0.6.4
-*released 21 May 2022*
+### ✨ v0.6.5
+*released 31 Aug 2025*
 
-| Platform           | SDK  | Requirements                  |
-|:------------------:|:----------:|:------------------------------|
-| Windows            | [**Download SDK**](https://siv3d.jp/downloads/Siv3D/OpenSiv3D_0.6.4_Installer.exe) | - Windows 7 SP1 / 8.1 / 10 / 11 (64-bit)<br>- Microsoft Visual C++ 2022 17.2<br>- Windows 10 SDK<br>- Intel / AMD CPU |
-| macOS              | [**Download SDK**](https://siv3d.jp/downloads/Siv3D/siv3d_v0.6.4_macOS.zip) | - macOS Mojave / Catalina / Big Sur / Monterey<br>- Xcode 11.3 or newer (Big Sur requires Xcode 12.5 or newer)<br>- Intel CPU*<br>- OpenGL 4.1 compatible hardware |
-| Linux              | [**Compiling for Linux**](https://zenn.dev/reputeless/books/siv3d-documentation/viewer/setup) | - GCC 9.3.0 (with Boost 1.71.0) / GCC 11.2 (with Boost 1.74.0)<br>- Intel / AMD CPU<br>- OpenGL 4.1 compatible hardware |
-| Web (experimental**) | [**Compiling for Web**](https://siv3d.kamenokosoft.com/download) | Web browser with WebAssembly and WebGL2 support |
-
-<small>* M1 will be supported in the future releases</small><br><small>** Some functionality may be missing or limited</small>
-
-### ⏰ v0.6.3 (previous)
-*released 14 November 2021*
-
-| Platform           | SDK  | Requirements                  |
-|:------------------:|:----------:|:------------------------------|
-| Windows            | [**Download SDK**](https://siv3d.jp/downloads/Siv3D/OpenSiv3D_0.6.3_Installer.exe) | - Windows 7 SP1 / 8.1 / 10 / 11 (64-bit)<br>- Microsoft Visual C++ 2019 16.11<br>- Windows 10 SDK<br>- Intel / AMD CPU |
-| macOS              | [**Download SDK**](https://siv3d.jp/downloads/Siv3D/siv3d_v0.6.3_macOS.zip) | - macOS Mojave / Catalina / Big Sur / Monterey<br>- Xcode 11.3 -13.2 (Big Sur requires Xcode 12.5 - 13.2)<br>- Intel CPU*<br>- OpenGL 4.1 compatible hardware |
-| Linux              | [**Compiling for Linux**](https://zenn.dev/reputeless/books/siv3d-documentation/viewer/setup) | - GCC 9.3.0<br>- Boost 1.71.0 - 1.73.0<br>- Intel / AMD CPU<br>- OpenGL 4.1 compatible hardware |
-| Web (experimental**) | [**Compiling for Web**](https://siv3d.kamenokosoft.com/download) | Web browser with WebAssembly and WebGL2 support |
-
-<small>* M1 will be supported in the future releases</small><br><small>** Some functionality may be missing or limited</small>
+| Platform   | Requirements                  |
+|Android     | - Android 12.0+ (API level 31 or later)<br>- Android Studio 2025.1.2 or newer<br>- OpenGL ES 3.0+ compatible device |
 
 
+## システム要件
+Android 用 Siv3D をビルドするのに必要な開発環境は次のとおりです。
 
-## How to Install
-
-- [Getting Started (Installing the Siv3D SDK)](https://zenn.dev/reputeless/books/siv3d-documentation-en/viewer/setup)
-- (日本語) [開発を始める（SDK のインストール）](https://zenn.dev/reputeless/books/siv3d-documentation/viewer/setup)
-
-
-## Tutorial
-
-- [Tutorial 01 - 42](https://zenn.dev/reputeless/books/siv3d-documentation-en/viewer/tutorial-basic)
-
-
-## Documentation
-
-- [Documentation (日本語)](https://zenn.dev/reputeless/books/siv3d-documentation)
-- [Documentation (English) [WIP]](https://zenn.dev/reputeless/books/siv3d-documentation-en)
-- [Release Notes](https://zenn.dev/reputeless/books/siv3d-documentation/viewer/whats-new)
-- [Roadmap](https://zenn.dev/reputeless/articles/opensiv3d-roadmap)
-- [Open Source Software used in Siv3D](ThirdParty.md)
-- [Architecture](ARCHITECTURE.md)
-
-## Community
-
-- [Siv3D User Community Slack](https://join.slack.com/t/siv3d/shared_invite/enQtNjM4NzQ0MzEyMzUzLTEzNDBkNWVkMTY0OGU5OWQxOTk3NjczMjk0OGJhYzJjOThjZjQ1YmYzMWU2NzQ5NTQ4ODg3NzE2ZmE0NmVlMTM)
+| 項目 | 必要環境 |
+|:---|:---|
+| OS | 64 ビット Windows 10 / macOS 12 / Linux ディストリビューション |
+| CPU | Intel または AMD 製 CPU |
+| 開発機 | Android 12 以降の端末 ※シミュレーションではテストできないため実機が必要 |
+| 開発環境 | Android Studio 2025.1.2( https://developer.android.com/studio ) |
 
 
-## Examples (v0.6.4)
+## コードを入手する
+`Kestrel-90r` の Siv3D リポジトリから `forAndroid` ブランチをクローンしてください。
 
-### 1. Hello, Siv3D!
+```bash
+git clone -b forAndroid https://github.com/Kestrel-90r/OpenSiv3D.git
+cd OpenSiv3D
+```
 
-![Screenshot](https://raw.githubusercontent.com/Siv3D/File/master/v6/screenshot/hello-siv3d.gif)
+## 開発言語について
+
+Siv3D (Windows / macOS / Linux / Web) は **C++20** を標準としていますが、  
+Android 版 Siv3D は **Android NDK** を使用するため、現在のサポート規格は **C++17** です。  
+
+そのため、C++20 以降で導入された以下のような一部の機能は利用できません:
+
+- `std::ranges` ライブラリ
+- `std::format` （代わりに Siv3D の `Format` 関数や `{fmt}` を利用できます）
+- `concepts`（`requires` や `concept` は使用不可）
+- `std::span` の一部拡張
+- 三方比較演算子 `<=>` など
+
+## Android 版の注意点: コンテキストロストへの対応
+
+Android では、**画面の消灯やアプリの一時停止・復帰**などの操作により  
+OpenGL ES の描画コンテキストが頻繁に「ロスト（破棄）」されることがあります。  
+
+デスクトップ版 Siv3D はコンテキストロストを想定していないため、  
+通常のコードでは以下のような現象が起きます:
+
+- 画面消灯 → 復帰後にアプリが停止する  
+
+
+
+# Android 版の注意点: 入力デバイスの対応
+
+デスクトップ版 Siv3D では **マウスやキーボード** を前提としていますが、  
+スマートフォンにマウスやキーボードを接続して利用するケースは稀です。  
+
+そのため Android 版では、**マウスやキーボードがなくても最低限の操作が可能**となるよう、  
+仮想的な GUI 機能 **「VPad」** を用意しています。  
+
+VPad は画面上に表示されるバーチャルコントローラで、以下のような操作を提供します:
+
+- 画面タッチによる **マウスのボタンクリック相当の入力**
+- 方向ボタンによる **カーソル移動やボタン入力の代替**
+- 必要に応じて GUI ボタンを追加可能  
+
+この仕組みにより、**マウスやキーボードを持たないスマートフォン環境でも、  
+デスクトップ版と同様のアプリ操作が可能**になります。
+
+<details>
+<summary>📄 VPadサンプルコード（クリックで展開）</summary>
 
 ```cpp
-# include <Siv3D.hpp>
+# include <Siv3D.hpp> 
+SIV3D_SET(EngineOption::Renderer::OpenGLES)
+
+void DrawStick(const VPad *vpad,int16 vk, const Font& font, const Font& debugFont)
+{
+    if (vk != VKLSTICK && vk != VKRSTICK) return;
+    
+    auto stickInfo = vpad->GetStickInfo(vk);
+    VPad::ButtonStyle style = vpad->GetButtonStyle(vk);
+    
+    // 基本円の描画
+    stickInfo.baseCircle.scaled(1.2).draw(ColorF{0.3, 0.3, 0.3, 0.2});
+    stickInfo.baseCircle.draw(ColorF{0.3, 0.3, 0.3, 0.3});
+    stickInfo.baseCircle.drawFrame(2, ColorF{0.6, 0.6, 0.6, 0.8});
+    Circle(stickInfo.baseCircle.center, stickInfo.baseCircle.r * 0.15).draw(ColorF{0.2, 0.2, 0.2, 0.2});
+    
+    // スティックつまみの描画
+    stickInfo.knobCircle.draw(stickInfo.active ? style.activeColor : ColorF{0.5, 0.5, 0.7, 0.7});
+    stickInfo.knobCircle.drawFrame(2, ColorF{1.0, 1.0, 1.0, 0.8});
+    
+    if (stickInfo.active)
+        Line(stickInfo.baseCircle.center, stickInfo.knobCircle.center).draw(3, ColorF{1.0, 1.0, 1.0, 0.5});
+    
+    // ラベルの描画
+    font(style.label).drawAt(stickInfo.baseCircle.center, ColorF{1.0, 1.0, 1.0, 0.8});
+    
+    // デバッグ情報表示（オプション）
+    if (debugFont)
+    {
+        const String valueText = U"{:.2f},{:.2f}"_fmt(stickInfo.normalizedValue.x, stickInfo.normalizedValue.y);
+        debugFont(valueText).draw(
+            Arg::topCenter = Vec2{stickInfo.baseCircle.center.x, stickInfo.baseCircle.y - stickInfo.baseCircle.r - 30},
+            ColorF{1.0, 1.0, 1.0, 0.8}
+        );
+    }
+}
 
 void Main()
 {
-	// Set background color to sky blue
-	Scene::SetBackground(ColorF{ 0.8, 0.9, 1.0 });
+    Window::Resize(1280, 720);
+    
+    auto* vpad = VPad::getInstance();
+    vpad->Init();
+    
+    // ボタン領域登録
+    const int btnY = vpad->AddRegion(RectF{1000, 300, 80, 80}, VKBTNY);
+    const int btnX = vpad->AddRegion(RectF{900, 400, 80, 80}, VKBTNX);
+    const int btnA = vpad->AddRegion(RectF{1000, 500, 80, 80}, VKBTNA);
+    const int btnB = vpad->AddRegion(RectF{1100, 400, 80, 80}, VKBTNB);
+    const int dpadUp    = vpad->AddRegion(RectF{ 200, 300, 80, 80}, VKUP);
+    const int dpadLeft  = vpad->AddRegion(RectF{ 100, 400, 80, 80}, VKLEFT);
+    const int dpadDown  = vpad->AddRegion(RectF{ 200, 500, 80, 80}, VKDOWN);
+    const int dpadRight = vpad->AddRegion(RectF{ 300, 400, 80, 80}, VKRIGHT);
+    const int btnR1 = vpad->AddRegion(RectF{100, 100, 200, 80}, VKR1);
+    const int btnR2 = vpad->AddRegion(RectF{100, 200, 200, 80}, VKR2);
+    const int btnL1 = vpad->AddRegion(RectF{1000, 100, 200, 80}, VKL1);
+    const int btnL2 = vpad->AddRegion(RectF{1000, 200, 200, 80}, VKL2);
+    const int btnStart  = vpad->AddRegion(RectF{600, 300, 100, 60}, VK_START);
+    const int btnSelect = vpad->AddRegion(RectF{600, 400, 100, 60}, VKSELECT);
+    const int stickL = vpad->AddRegion(RectF{420, 500, 180, 180}, VKLSTICK);
+    const int stickR = vpad->AddRegion(RectF{680, 500, 180, 180}, VKRSTICK);
+    const int btnLeft = vpad->AddRegion(RectF{50, 650, 80, 40}, VKBTNL);
+    const int btnMiddle = vpad->AddRegion(RectF{150, 650, 80, 40}, VKBTNM);
+    const int btnRight = vpad->AddRegion(RectF{250, 650, 80, 40}, VKBTNR);
+    
+    vpad->SetButtonStyle(VKBTNA, U"A", ColorF{0.9, 0.2, 0.2, 0.8}, ColorF{0.4, 0.1, 0.1, 0.5});
+    vpad->SetButtonStyle(VKBTNB, U"B", ColorF{0.2, 0.9, 0.2, 0.8}, ColorF{0.1, 0.4, 0.1, 0.5});
+    vpad->SetButtonStyle(VKBTNX, U"X", ColorF{0.2, 0.2, 0.9, 0.8}, ColorF{0.1, 0.1, 0.4, 0.5});
+    vpad->SetButtonStyle(VKBTNY, U"Y", ColorF{0.9, 0.9, 0.2, 0.8}, ColorF{0.4, 0.4, 0.1, 0.5});
+    vpad->SetButtonStyle(VKLEFT, U"←", ColorF{0.6, 0.6, 0.6, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5});
+    vpad->SetButtonStyle(VKRIGHT, U"→", ColorF{0.6, 0.6, 0.6, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5});
+    vpad->SetButtonStyle(VKUP, U"↑", ColorF{0.6, 0.6, 0.6, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5});
+    vpad->SetButtonStyle(VKDOWN, U"↓", ColorF{0.6, 0.6, 0.6, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5});
+    vpad->SetButtonStyle(VKL1, U"L1", ColorF{0.8, 0.5, 0.5, 0.8}, ColorF{0.4, 0.2, 0.2, 0.5});
+    vpad->SetButtonStyle(VKL2, U"L2", ColorF{0.8, 0.3, 0.3, 0.8}, ColorF{0.4, 0.15, 0.15, 0.5});
+    vpad->SetButtonStyle(VKR1, U"R1", ColorF{0.5, 0.8, 0.5, 0.8}, ColorF{0.2, 0.4, 0.2, 0.5});
+    vpad->SetButtonStyle(VKR2, U"R2", ColorF{0.3, 0.8, 0.3, 0.8}, ColorF{0.15, 0.4, 0.15, 0.5});
+    vpad->SetButtonStyle(VK_START, U"START", ColorF{0.7, 0.7, 0.7, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5});
+    vpad->SetButtonStyle(VKSELECT, U"SELECT", ColorF{0.7, 0.7, 0.7, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5});
+    vpad->SetButtonStyle(VKLSTICK, U"LS", ColorF{0.5, 0.5, 0.9, 0.8}, ColorF{0.2, 0.2, 0.4, 0.5});
+    vpad->SetButtonStyle(VKRSTICK, U"RS", ColorF{0.5, 0.9, 0.5, 0.8}, ColorF{0.2, 0.4, 0.2, 0.5});
+    vpad->SetButtonStyle(VKBTNL, U"LMB", ColorF{0.8, 0.2, 0.2, 0.8}, ColorF{0.4, 0.1, 0.1, 0.5});
+    vpad->SetButtonStyle(VKBTNM, U"MMB", ColorF{0.2, 0.8, 0.2, 0.8}, ColorF{0.1, 0.4, 0.1, 0.5});
+    vpad->SetButtonStyle(VKBTNR, U"RMB", ColorF{0.2, 0.2, 0.8, 0.8}, ColorF{0.1, 0.1, 0.4, 0.5});
+    
+    const Font font(32);
+    const Font debugFont(24);
+    
+    while (System::Update())
+    {
+		if (MouseL.down()) Print << U"Left Click";
+		if (MouseM.down()) Print << U"Middle Click";
+		if (MouseR.down()) Print << U"Right Click";
 
-	// Create a new font
-	const Font font{ 60 };
-	
-	// Create a new emoji font
-	const Font emojiFont{ 60, Typeface::ColorEmoji };
-	
-	// Set emojiFont as a fallback
-	font.addFallback(emojiFont);
+        vpad->Update();
+        
+        // VPadの領域をループして描画
+        for (const auto& region : vpad->GetRegions())
+        {
+            //アナログスティック    
+            if (region.vk == VKLSTICK || region.vk == VKRSTICK)
+            {
+                DrawStick(vpad, region.vk, font, debugFont);
+            }
+ 
+            //ボタン
+            else
+            {
+                RectF rect = vpad->GetButtonInfo(region.vk).rect;
+                VPad::ButtonStyle style = vpad->GetButtonStyle(region.vk);
 
-	// Create a texture from an image file
-	const Texture texture{ U"example/windmill.png" };
-
-	// Create a texture from an emoji
-	const Texture emoji{ U"🐈"_emoji };
-
-	// Coordinates of the emoji
-	Vec2 emojiPos{ 300, 150 };
-
-	// Print a text
-	Print << U"Push [A] key";
-
-	while (System::Update())
-	{
-		// Draw a texture
-		texture.draw(200, 200);
-
-		// Put a text in the middle of the screen
-		font(U"Hello, Siv3D!🚀").drawAt(Scene::Center(), Palette::Black);
-
-		// Draw a texture with animated size
-		emoji.resized(100 + Periodic::Sine0_1(1s) * 20).drawAt(emojiPos);
-
-		// Draw a red transparent circle that follows the mouse cursor
-		Circle{ Cursor::Pos(), 40 }.draw(ColorF{ 1, 0, 0, 0.5 });
-
-		// When [A] key is down
-		if (KeyA.down())
-		{
-			// Print a randomly selected text
-			Print << Sample({ U"Hello!", U"こんにちは", U"你好", U"안녕하세요?" });
-		}
-
-		// When [Button] is pushed
-		if (SimpleGUI::Button(U"Button", Vec2{ 640, 40 }))
-		{
-			// Move the coordinates to a random position in the screen
-			emojiPos = RandomVec2(Scene::Rect());
-		}
-	}
+                bool isActive = vpad->IsButtonActive(region.vk);
+                ColorF color = isActive ? style.activeColor : style.inactiveColor;
+                rect.draw(color);
+                rect.drawFrame(2, ColorF{1.0, 1.0, 1.0, 0.8});
+                font(style.label).drawAt(rect.center(), ColorF{1.0});
+            }
+        }
+    }
 }
 ```
+</details> 
 
-### 2. Breakout
 
-> [Web Demo](https://siv3d.jp/web/sample/breakout/breakout.html)
 
-![Screenshot](https://raw.githubusercontent.com/Siv3D/File/master/v6/screenshot/breakout.gif)
 
-```cpp
-# include <Siv3D.hpp>
-
-void Main()
-{
-	constexpr Size brickSize{ 40, 20 };
-	
-	constexpr double speed = 480.0;
-	
-	Vec2 ballVelocity{ 0, -speed };
-	
-	Circle ball{ 400, 400, 8 };
-
-	Array<Rect> bricks;
-	for (auto p : step(Size{ (Scene::Width() / brickSize.x), 5 }))
-	{
-		bricks << Rect{ (p.x * brickSize.x), (60 + p.y * brickSize.y), brickSize };
-	}
-
-	while (System::Update())
-	{
-		const Rect paddle{ Arg::center(Cursor::Pos().x, 500), 60, 10 };
-
-		ball.moveBy(ballVelocity * Scene::DeltaTime());
-
-		for (auto it = bricks.begin(); it != bricks.end(); ++it)
-		{
-			if (it->intersects(ball))
-			{
-				(it->bottom().intersects(ball) || it->top().intersects(ball)
-					? ballVelocity.y : ballVelocity.x) *= -1;
-
-				bricks.erase(it);
-				break;
-			}
-		}
-
-		if (ball.y < 0 && ballVelocity.y < 0)
-		{
-			ballVelocity.y *= -1;
-		}
-
-		if ((ball.x < 0 && ballVelocity.x < 0)
-			|| (Scene::Width() < ball.x && 0 < ballVelocity.x))
-		{
-			ballVelocity.x *= -1;
-		}
-
-		if (0 < ballVelocity.y && paddle.intersects(ball))
-		{
-			ballVelocity = Vec2{ (ball.x - paddle.center().x) * 10, -ballVelocity.y }.setLength(speed);
-		}
-
-		for (const auto& brick : bricks)
-		{
-			brick.stretched(-1).draw(HSV{ brick.y - 40 });
-		}
-
-		ball.draw();
-		paddle.draw();
-	}
-}
-```
-
-### 3. Hello, 3D world! 
-
-> [Web Demo](https://siv3d.jp/web/sample/basic3d/basic3d.html)
-
-![Screenshot](https://raw.githubusercontent.com/Siv3D/File/master/v6/screenshot/hello-3d.png)
-
-```cpp
-# include <Siv3D.hpp>
-
-void Main()
-{
-	// Resize the window and scene to 1280x720
-	Window::Resize(1280, 720);
-
-	// Background color (remove SRGB curve for a linear workflow)
-	const ColorF backgroundColor = ColorF{ 0.4, 0.6, 0.8 }.removeSRGBCurve();
-
-	// Texture for UV check (mipmapped. treat as SRGB texture in a linear workflow)
-	const Texture uvChecker{ U"example/texture/uv.png", TextureDesc::MippedSRGB };
-
-	// Multisample RenderTexture for a linear workflow
-	const MSRenderTexture renderTexture{ Scene::Size(), TextureFormat::R8G8B8A8_Unorm_SRGB, HasDepth::Yes };
-
-	// 3D debug camera (free camera)
-	// Vertical FOV: 30°, Eye position: (10, 16, -32)
-	// Move: [W][S][A][D][E][X], View: [arrow keys]
-	DebugCamera3D camera{ renderTexture.size(), 30_deg, Vec3{ 10, 16, -32 } };
-
-	while (System::Update())
-	{
-		// Update a camera
-		camera.update(2.0);
-
-		// Set up a camera in the current 3D scene
-		Graphics3D::SetCameraTransform(camera);
-
-		// [3D rendering]
-		{
-			// Clear renderTexture with the background color,
-			// then make renderTexture the render target for the current 3D scene
-			const ScopedRenderTarget3D target{ renderTexture.clear(backgroundColor) };
-
-			// Draw a floor
-			Plane{ 64 }.draw(uvChecker);
-
-			// Draw a box
-			Box{ -8,2,0,4 }.draw(ColorF{ 0.8, 0.6, 0.4 }.removeSRGBCurve());
-
-			// Draw a sphere
-			Sphere{ 0,2,0,2 }.draw(ColorF{ 0.4, 0.8, 0.6 }.removeSRGBCurve());
-
-			// Draw a cylinder
-			Cylinder{ 8, 2, 0, 2, 4 }.draw(ColorF{ 0.6, 0.4, 0.8 }.removeSRGBCurve());
-		}
-
-		// [2D rendering]
-		{
-			// Flush 3D rendering commands before multisample resolve
-			Graphics3D::Flush();
-
-			// Multisample resolve
-			renderTexture.resolve();
-
-			// Transfer renderTexture to the current 2D scene (default scene)
-			Shader::LinearToScreen(renderTexture);
-		}
-	}
-}
-```
-
-## Supporting the Project
-
-If you would like to support the project financially, visit my GitHub Sponsors page. Your support will accelerate the development of this exciting framework.
-
-💗 https://github.com/sponsors/Reputeless
-
-### Platinum Sponsor
-| <a href="https://github.com/Kyle873" target="_blank"><img src="https://avatars.githubusercontent.com/u/1127511?v=4" width="120" alt="Kyle873"></a> | 
-|:--:| 
-| Kyle Belanger |
 
