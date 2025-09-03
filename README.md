@@ -158,7 +158,9 @@ Android版Siv3Dでは、描画リソースをOptional<>の広域変数を使っ�
 
 <details>
 <summary>📄 Init()サンプルコード（クリックで展開）</summary>
+
 ```cpp
+
 # include <Siv3D.hpp> // OpenSiv3D v0.6.5
 SIV3D_SET(EngineOption::Renderer::OpenGLES)
 
@@ -239,8 +241,8 @@ void Main()
     }
 }
 
-
 ```
+
 </details> 
 
 
@@ -264,6 +266,7 @@ VPad は画面上に表示されるバーチャルコントローラで、以下
 
 <details>
 <summary>📄 VPadサンプルコード（クリックで展開）</summary>
+
 ```cpp
 # include <Siv3D.hpp> 
 SIV3D_SET(EngineOption::Renderer::OpenGLES)
@@ -385,7 +388,9 @@ void Main()
         }
     }
 }
+
 ```
+
 </details> 
 
 
