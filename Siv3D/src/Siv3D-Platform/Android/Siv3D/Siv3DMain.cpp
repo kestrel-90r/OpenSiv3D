@@ -63,7 +63,7 @@ bool isSiv3DRunning()
 }
 
 bool g_isSuspending = false;
-bool g_isResuming = false;
+bool g_isAwaitingResume = false;
 std::mutex g_CallbackMutex;
 
 bool g_isRenderingSuspended = false;
@@ -187,6 +187,7 @@ void BlockingForReady(const int maxRetries = 10)
     }
 }
 
+
 /// レジューム処理
 void OnResume()
 {
@@ -250,11 +251,11 @@ void OnResume()
 /// レジューム開始処理
 void StartResume()
 {
-    std::lock_guard<std::mutex> lock(g_CallbackMutex);
-    if( g_isRenderingSuspended )
+	if( g_isRenderingSuspended )
     {
-        g_isResuming = true;
-    }
+	    std::lock_guard<std::mutex> lock(g_CallbackMutex);
+	    g_isAwaitingResume = true;
+	}
 }
 
 /// サスペンド開始処理

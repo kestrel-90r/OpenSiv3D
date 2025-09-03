@@ -56,6 +56,7 @@ static void start_siv3d_thread();
 extern "C" void *siv3d_main_thread(void *arg);
 extern "C" int Siv3DMain(int argc, char *argv[], int width, int height);
 extern bool g_isRenderingSuspended;
+extern bool g_isAwaitingResume;
 
 namespace s3d
 {
@@ -85,25 +86,13 @@ namespace s3d
     int32_t g_RealScreenWidth = 0;
     int32_t g_RealScreenHeight = 0;
 }
-/*
-void routeTouchEventToSiv3D(int action, int x, int y)
+
+/// NativeWindowが有効かどうかを判定
+/// @return NativeWindowが有効なら true
+bool IsReadyToResume()
 {
-    using namespace s3d;
-
-    if (auto *cursor = dynamic_cast<CCursor *>(SIV3D_ENGINE(Cursor)))
-    {
-        cursor->onTouchEvent(Point{x, y});
-    }
-
-    if (auto *mouse = dynamic_cast<CMouse *>(SIV3D_ENGINE(Mouse)))
-    {
-        mouse->onTouchEvent(action, Point{x, y});
-    }
-
-    // VPad用のマルチタッチイベント処理（単一タッチの場合はpointerId=0）
-    handleTouchEvent(action, 0, Point{x, y});
+    return (g_NativeWindow != nullptr);
 }
-*/
 
 /// フレームバッファサイズを Kotlinから通知
 /// @param env JNI 環境
@@ -1558,6 +1547,7 @@ Java_com_google_androidgamesdk_GameActivity_onStopNative(
 {
     LOGI("onStopNative - Stopping application");
     g_isRenderingSuspended = true;
+    g_isAwaitingResume = false;
     if (s3d::g_NativeWindow)
     {
         LOGI("Preserving surface while stopped");

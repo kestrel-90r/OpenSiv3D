@@ -60,11 +60,12 @@
 
 extern bool g_isRenderingSuspended;
 extern bool g_isSuspending;
-extern bool g_isResuming;
+extern bool g_isAwaitingResume;
 extern std::mutex g_CallbackMutex;
 
 void OnSuspend();
 void OnResume();
+bool IsReadyToResume();
 
 namespace s3d
 {
@@ -145,26 +146,26 @@ namespace s3d
             if (m_termination || SIV3D_ENGINE(UserAction)->terminationTriggered())
             {
                 m_termination = true;
-            }
-
-            if (m_termination)
-            {
                 return false;
             }
 
             {
                 std::lock_guard<std::mutex> lock(g_CallbackMutex);
-                if (g_isResuming)
+                if (g_isAwaitingResume)
                 {
-                    LOG_INFO(U"CSystem::update() - Detected resume flag, calling OnResume()");
-                    OnResume();
-                    if (SIV3D_ENGINE(UserAction)->terminationTriggered())
+                    // NativeWindowが準備できるまで待機
+                    if ( IsReadyToResume() )
                     {
-                        return false;
-                    }
+                        LOG_INFO(U"CSystem::update() - NativeWindow ready, calling OnResume()");
+                        OnResume();
 
-                    g_isResuming = false;
-                    g_isRenderingSuspended = false;
+                        if (SIV3D_ENGINE(UserAction)->terminationTriggered())
+                        {
+                            return false;
+                        }
+                        g_isRenderingSuspended = false;
+                        g_isAwaitingResume = false;
+                    }
                 }
             }
 
