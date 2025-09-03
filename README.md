@@ -103,7 +103,7 @@
 
 
 ### ✨ v0.6.5
-*released 31 Aug 2025*
+*released 3 Sep 2025*
 
 | Platform   | Requirements                  |
 |Android     | - Android 12.0+ (API level 31 or later)<br>- Android Studio 2025.1.2 or newer<br>- OpenGL ES 3.0+ compatible device |
@@ -130,8 +130,8 @@ cd OpenSiv3D
 
 ## 開発言語について
 
-Siv3D (Windows / macOS / Linux / Web) は **C++20** を標準としていますが、  
-Android 版 Siv3D は **Android NDK** を使用するため、現在のサポート規格は **C++17** です。  
+Siv3D (Windows / macOS / Linux / Web) は C++20 を標準としていますが、  
+Android 版 Siv3D は Android NDK を使用するため、現在のサポート規格は C++17 です。  
 
 そのため、C++20 以降で導入された以下のような一部の機能は利用できません:
 
@@ -141,9 +141,9 @@ Android 版 Siv3D は **Android NDK** を使用するため、現在のサポー
 - `std::span` の一部拡張
 - 三方比較演算子 `<=>` など
 
-## Android 版の注意点: コンテキストロストへの対応
+## コンテキストロストへの対応
 
-Android では、**画面の消灯やアプリの一時停止・復帰**などの操作により  
+Android では、画面の消灯やアプリの一時停止・復帰 などの操作により  
 OpenGL ES の描画コンテキストが頻繁に「ロスト（破棄）」されることがあります。  
 
 デスクトップ版 Siv3D はコンテキストロストを想定していないため、  
@@ -151,26 +151,118 @@ OpenGL ES の描画コンテキストが頻繁に「ロスト（破棄）」さ�
 
 - 画面消灯 → 復帰後にアプリが停止する  
 
+この対策のため、描画関係の初期化処理をbool Init()関数に記述する必要があります。
+例えば、端末の画面消灯→復帰を行うと描画コンテキストが破棄されます。
+復帰時にユーザーアプリ固有の初期化処理を再実行して、Textureやシェーダーなどのリソースを再構築します。
+Android版Siv3Dでは、描画リソースをOptional<>の広域変数を使って管理します。
+
+<details>
+<summary>📄 Init()サンプルコード（クリックで展開）</summary>
+
+```cpp
+
+# include <Siv3D.hpp> // OpenSiv3D v0.6.5
+SIV3D_SET(EngineOption::Renderer::OpenGLES)
+
+Optional<Font> g_font ;
+Optional<Texture> g_texture ;
+Optional<Texture> g_emoji ;
+Vec2 g_emojiPos{ 300, 150 };
+
+// 初期化関数
+bool Init()
+{
+    g_font.reset();
+    g_texture.reset();
+    g_emoji.reset();
+
+    Window::Resize(800, 600);
+
+    // 背景の色を設定 | Set background color
+    Scene::SetBackground(ColorF{ 0.8, 0.9, 1.0 });
+
+    // 通常のフォントを作成 | Create a new font
+    g_font = Font{ 60 };
+
+    // 絵文字用フォントを作成 | Create a new emoji font
+    Font emojiFont = Font{ 60, Typeface::ColorEmoji };
+
+    // `font` が絵文字用フォントも使えるようにする | Set emojiFont as a fallback
+    g_font->addFallback( emojiFont );
+
+    // 画像ファイルからテクスチャを作成 | Create a texture from an image file
+    g_texture = Texture{ U"example/windmill.png" };
+
+    // 絵文字からテクスチャを作成 | Create a texture from an emoji
+    g_emoji = Texture{ U"🐈"_emoji };
+
+    // 絵文字を描画する座標 | Coordinates of the emoji
+    g_emojiPos = Vec2{ 300, 150 };
+
+    return true;
+}
+
+void Main()
+{
+    // 初期化関数を呼び出し
+    Init();
+
+    // テキストを画面にデバッグ出力 | Print a text
+    Print << U"Push [A] key";
+
+    while (System::Update())
+    {
+        // テクスチャを描く | Draw a texture
+        g_texture->draw(200, 200);
+
+        // テキストを画面の中心に描く | Put a text in the middle of the screen
+        (*g_font)(U"Hello, Siv3D!🚀").drawAt(Scene::Center(), Palette::Black);
+
+        // サイズをアニメーションさせて絵文字を描く | Draw a texture with animated size
+        g_emoji->resized(100 + Periodic::Sine0_1(1s) * 20).drawAt(g_emojiPos);
+
+        // マウスカーソルに追随する半透明な円を描く | Draw a red transparent circle that follows the mouse cursor
+        Circle{ Cursor::Pos(), 40 }.draw(ColorF{ 1, 0, 0, 0.5 });
+
+        // もし [A] キーが押されたら | When [A] key is down
+        if (KeyA.down())
+        {
+            // 選択肢からランダムに選ばれたメッセージをデバッグ表示 | Print a randomly selected text
+            Print << Sample({ U"Hello!", U"こんにちは", U"你好", U"안녕하세요?" });
+        }
+
+        // もし [Button] が押されたら | When [Button] is pushed
+        if (SimpleGUI::Button(U"Button", Vec2{ 640, 40 }))
+        {
+            // 画面内のランダムな場所に座標を移動
+            // Move the coordinates to a random position in the screen
+            g_emojiPos = RandomVec2(Scene::Rect());
+        }
+    }
+}
+
+```
+
+</details> 
 
 
 
+## 入力デバイスの対応
 
-## Android 版の注意点: 入力デバイスの対応
-
-デスクトップ版 Siv3D では **マウスやキーボード** を前提としていますが、  
+デスクトップ版 Siv3D では マウスやキーボード を前提としていますが、  
 スマートフォンにマウスやキーボードを接続して利用するケースは稀です。  
 
-そのため Android 版では、**マウスやキーボードがなくても最低限の操作が可能**となるよう、  
-仮想的な GUI 機能 **「VPad」** を用意しています。  
+そのため Android 版では、マウスやキーボードがなくても最低限の操作が可能となるよう、  
+仮想的な GUI 機能 「VPad」 を用意しています。  
 
 VPad は画面上に表示されるバーチャルコントローラで、以下のような操作を提供します:
 
-- 画面タッチによる **マウスのボタンクリック相当の入力**
-- 方向ボタンによる **カーソル移動やボタン入力の代替**
+- 画面タッチによる マウスのボタンクリック相当の入力
+- 方向ボタンによる カーソル移動やボタン入力の代替
 - 必要に応じて GUI ボタンを追加可能  
 
-この仕組みにより、**マウスやキーボードを持たないスマートフォン環境でも、  
-デスクトップ版と同様のアプリ操作が可能**になります。
+この仕組みにより、マウスやキーボードを持たないスマートフォン環境でも、  
+デスクトップ版と同様のアプリ操作を行えるように構成できます。
 
 <details>
 <summary>📄 VPadサンプルコード（クリックで展開）</summary>
@@ -296,7 +388,9 @@ void Main()
         }
     }
 }
+
 ```
+
 </details> 
 
 
