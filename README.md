@@ -132,6 +132,17 @@ Invoke-WebRequest -Uri "https://archives.boost.io/release/1.74.0/source/boost_1_
 Expand-Archive boost_1_74_0.zip -DestinationPath . -Force
 ```
 
+## AndroidStudioでプロジェクトを開く
+Windows版と同様にIDE上でコーディングやデバッグの作業が可能です。
+AndroidStudioを起動したら、Welcome to Android Studioの画面で、OpenSiv3D\Androidフォルダを開いてください。
+※注意点
+AndroidStudioはプロジェクト作成直後に環境構築のために、プロジェクトフォルダの内容からシンボル名等のIndexingを実行します。
+boostの内容が非常に多いため、使用している環境によっては、このIndexingが終了しない場合があります。
+対策として、OpenSiv3D\Dependencies\boost_1_74_0\boostフォルダを、一時的にデスクトップ等に移動してIndexingを完了できます。
+Indexingが完了したら、ビルドを実行します。
+boostが無いためエラーになるのですが、こうすることでIndexingが行われなくなるので、退避していたboostフォルダを元の位置に戻して、
+再度リビルドを実行します。
+
 ## 開発言語について
 
 Siv3D (Windows / macOS / Linux / Web) は C++20 を標準としていますが、  
