@@ -122,10 +122,14 @@ Android 用 Siv3D をビルドするのに必要な開発環境は次のとお�
 
 ## コードを入手する
 `Kestrel-90r` の Siv3D リポジトリから `forAndroid` ブランチをクローンしてください。
+また、Dependencies/ フォルダ内に Boost 1.74.0 を展開してセットアップする必要があります。
 
 ```bash
+powershell
 git clone -b forAndroid https://github.com/Kestrel-90r/OpenSiv3D.git
-cd OpenSiv3D
+cd OpenSiv3D/Dependencies
+Invoke-WebRequest -Uri "https://archives.boost.io/release/1.74.0/source/boost_1_74_0.zip" -OutFile "boost_1_74_0.zip"
+Expand-Archive boost_1_74_0.zip -DestinationPath . -Force
 ```
 
 ## 開発言語について
