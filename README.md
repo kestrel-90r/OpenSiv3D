@@ -106,7 +106,7 @@
 *released 3 Sep 2025*
 
 | Platform   | Requirements                  |
-|Android     | - Android 12.0+ (API level 31 or later)<br>- Android Studio 2025.1.2 or newer<br>- OpenGL ES 3.0+ compatible device |
+|Android     | - Android 12.0 (API level 31 or later)<br>- Android Studio 2025.1.2 or newer<br>- OpenGL ES 3.2+ compatible device |
 
 
 ## システム要件
