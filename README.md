@@ -106,7 +106,7 @@
 *released 3 Sep 2025*
 
 | Platform   | Requirements                  |
-|Android     | - Android 12.0 (API level 31 or later)<br>- Android Studio 2025.1.2 or newer<br>- OpenGL ES 3.2+ compatible device |
+| Android    | - Android 12.0 (API level 31 or later)<br>- Android Studio 2025.1.2 or newer<br>- OpenGL ES 3.2 compatible device |
 
 
 ## システム要件
@@ -288,32 +288,32 @@ VPad は画面上に表示されるバーチャルコントローラで、以下
 <summary>📄 VPadサンプルコード（クリックで展開）</summary>
 
 ```cpp
-# include <Siv3D.hpp> 
+# include <Siv3D.hpp>
 SIV3D_SET(EngineOption::Renderer::OpenGLES)
 
 void DrawStick(const VPad *vpad,int16 vk, const Font& font, const Font& debugFont)
 {
     if (vk != VKLSTICK && vk != VKRSTICK) return;
-    
+
     auto stickInfo = vpad->GetStickInfo(vk);
     VPad::ButtonStyle style = vpad->GetButtonStyle(vk);
-    
+
     // 基本円の描画
     stickInfo.baseCircle.scaled(1.2).draw(ColorF{0.3, 0.3, 0.3, 0.2});
     stickInfo.baseCircle.draw(ColorF{0.3, 0.3, 0.3, 0.3});
     stickInfo.baseCircle.drawFrame(2, ColorF{0.6, 0.6, 0.6, 0.8});
     Circle(stickInfo.baseCircle.center, stickInfo.baseCircle.r * 0.15).draw(ColorF{0.2, 0.2, 0.2, 0.2});
-    
+
     // スティックつまみの描画
     stickInfo.knobCircle.draw(stickInfo.active ? style.activeColor : ColorF{0.5, 0.5, 0.7, 0.7});
     stickInfo.knobCircle.drawFrame(2, ColorF{1.0, 1.0, 1.0, 0.8});
-    
+
     if (stickInfo.active)
         Line(stickInfo.baseCircle.center, stickInfo.knobCircle.center).draw(3, ColorF{1.0, 1.0, 1.0, 0.5});
-    
+
     // ラベルの描画
     font(style.label).drawAt(stickInfo.baseCircle.center, ColorF{1.0, 1.0, 1.0, 0.8});
-    
+
     // デバッグ情報表示（オプション）
     if (debugFont)
     {
@@ -328,10 +328,10 @@ void DrawStick(const VPad *vpad,int16 vk, const Font& font, const Font& debugFon
 void Main()
 {
     Window::Resize(1280, 720);
-    
+
     auto* vpad = VPad::getInstance();
     vpad->Init();
-    
+
     // ボタン領域登録
     const int btnY = vpad->AddRegion(RectF{1000, 300, 80, 80}, VKBTNY);
     const int btnX = vpad->AddRegion(RectF{900, 400, 80, 80}, VKBTNX);
@@ -352,7 +352,7 @@ void Main()
     const int btnLeft = vpad->AddRegion(RectF{50, 650, 80, 40}, VKBTNL);
     const int btnMiddle = vpad->AddRegion(RectF{150, 650, 80, 40}, VKBTNM);
     const int btnRight = vpad->AddRegion(RectF{250, 650, 80, 40}, VKBTNR);
-    
+
     vpad->SetButtonStyle(VKBTNA, U"A", ColorF{0.9, 0.2, 0.2, 0.8}, ColorF{0.4, 0.1, 0.1, 0.5});
     vpad->SetButtonStyle(VKBTNB, U"B", ColorF{0.2, 0.9, 0.2, 0.8}, ColorF{0.1, 0.4, 0.1, 0.5});
     vpad->SetButtonStyle(VKBTNX, U"X", ColorF{0.2, 0.2, 0.9, 0.8}, ColorF{0.1, 0.1, 0.4, 0.5});
@@ -372,27 +372,21 @@ void Main()
     vpad->SetButtonStyle(VKBTNL, U"LMB", ColorF{0.8, 0.2, 0.2, 0.8}, ColorF{0.4, 0.1, 0.1, 0.5});
     vpad->SetButtonStyle(VKBTNM, U"MMB", ColorF{0.2, 0.8, 0.2, 0.8}, ColorF{0.1, 0.4, 0.1, 0.5});
     vpad->SetButtonStyle(VKBTNR, U"RMB", ColorF{0.2, 0.2, 0.8, 0.8}, ColorF{0.1, 0.1, 0.4, 0.5});
-    
+
     const Font font(32);
     const Font debugFont(24);
-    
+
     while (System::Update())
     {
-		if (MouseL.down()) Print << U"Left Click";
-		if (MouseM.down()) Print << U"Middle Click";
-		if (MouseR.down()) Print << U"Right Click";
-
-        vpad->Update();
-        
         // VPadの領域をループして描画
         for (const auto& region : vpad->GetRegions())
         {
-            //アナログスティック    
+            //アナログスティック
             if (region.vk == VKLSTICK || region.vk == VKRSTICK)
             {
                 DrawStick(vpad, region.vk, font, debugFont);
             }
- 
+
             //ボタン
             else
             {
@@ -406,6 +400,7 @@ void Main()
                 font(style.label).drawAt(rect.center(), ColorF{1.0});
             }
         }
+        Circle{ Cursor::Pos(), 40 }.draw(ColorF{ 1, 1, 0, 0.5 });
     }
 }
 
