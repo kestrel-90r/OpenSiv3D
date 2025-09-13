@@ -141,16 +141,6 @@ Java_com_kestrel_opensiv3d_MainActivity_SendFrameBufferSizeNative(JNIEnv *env, j
 extern "C" JNIEXPORT void JNICALL
 Java_com_kestrel_opensiv3d_MainActivity_onTouchEventNative(JNIEnv *env, jobject /* this */, jint action, jint x, jint y)
 {
-    using namespace s3d;
-
-    auto *cursor = dynamic_cast<CCursor *>(SIV3D_ENGINE(Cursor));
-    auto *mouse = dynamic_cast<CMouse *>(SIV3D_ENGINE(Mouse));
-
-    if (cursor)
-        cursor->onTouchEvent(Point{static_cast<int>(x), static_cast<int>(y)});
-
-    if (mouse)
-        mouse->onTouchEvent(action, Point{static_cast<int>(x), static_cast<int>(y)});
 }
 
 /// マルチタッチイベントを Siv3D の Cursor / Mouse へ転送
@@ -1639,3 +1629,34 @@ extern "C" void HandleGamepadMotionEvent(int32 source, int32 action, float x, fl
     }
 }
 
+/// BTマウスボタンイベントをSiv3DのMouseへ転送
+/// @param env JNI 環境
+/// @param thiz MainActivity
+/// @param buttonState ボタン状態（MotionEvent.getButtonState()）
+extern "C" JNIEXPORT void JNICALL
+Java_com_kestrel_opensiv3d_MainActivity_onMouseButtonNative(JNIEnv *env, jobject /* this */, jint buttonState)
+{
+    using namespace s3d;
+    auto *mouse = dynamic_cast<CMouse *>(SIV3D_ENGINE(Mouse));
+    if (mouse)
+    {
+        static bool prevButtons[3] = {false, false, false};
+        bool currentButtons[3] = {
+            (buttonState & 1) != 0,  // 左ボタン
+            (buttonState & 2) != 0,  // 右ボタン  
+            (buttonState & 4) != 0   // 中ボタン
+        };
+        
+        for (int i = 0; i < 3; ++i)
+        {
+            if (currentButtons[i] != prevButtons[i])
+            {
+                if (currentButtons[i])
+                    mouse->updateButtonDown(i);
+                else
+                    mouse->updateButtonUp(i);
+                prevButtons[i] = currentButtons[i];
+            }
+        }
+    }
+}

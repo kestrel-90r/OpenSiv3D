@@ -186,6 +186,11 @@ namespace s3d
         bool inRect(const VPadRegion &region, float x, float y) const;
         void updateScalingInfo();
     
+        void forwardTouchToCursor(int32 pointerId, float x, float y);
+        void forwardTouchMoveToCursor(int32 pointerId, float x, float y);
+        void forwardTouchEndToCursor(int32 pointerId);
+        bool isFirstCursorPointer(int32 pointerId) const;
+    
     public:
 
         static VPad* getInstance();
@@ -203,6 +208,7 @@ namespace s3d
         void SetScreenSize(int32 width, int32 height);
         void SetRealScreenSize(int32 width, int32 height);
         void Update();
+        void Draw( double round = 20.0 ) const;
         int16 GetVKeyStatus(int16 vk) const;
         Vec2 GetAnalogValue(int16 vk) const;
         int16 AddRegion(const RectF& region, int16 vk);

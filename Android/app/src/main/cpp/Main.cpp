@@ -1,48 +1,30 @@
-﻿# include <Siv3D.hpp> // OpenSiv3D v0.6.5
+﻿# include <Siv3D.hpp>
 SIV3D_SET(EngineOption::Renderer::OpenGLES)
 
-Optional<Font> g_font ;
-Optional<Texture> g_texture ;
-Optional<Texture> g_emoji ;
-Vec2 g_emojiPos{ 300, 150 };
+# include <Siv3D.hpp> // OpenSiv3D v0.6.5
 
-// 初期化関数
-bool Init()
+void Main()
 {
-    g_font.reset();
-    g_texture.reset();
-    g_emoji.reset();
-
-    Window::Resize(800, 600);
-
     // 背景の色を設定 | Set background color
     Scene::SetBackground(ColorF{ 0.8, 0.9, 1.0 });
 
     // 通常のフォントを作成 | Create a new font
-    g_font = Font{ 60 };
+    const Font font{ 60 };
 
     // 絵文字用フォントを作成 | Create a new emoji font
-    Font emojiFont = Font{ 60, Typeface::ColorEmoji };
+    const Font emojiFont{ 60, Typeface::ColorEmoji };
 
     // `font` が絵文字用フォントも使えるようにする | Set emojiFont as a fallback
-    g_font->addFallback( emojiFont );
+    font.addFallback(emojiFont);
 
     // 画像ファイルからテクスチャを作成 | Create a texture from an image file
-    g_texture = Texture{ U"example/windmill.png" };
+    const Texture texture{ U"example/windmill.png" };
 
     // 絵文字からテクスチャを作成 | Create a texture from an emoji
-    g_emoji = Texture{ U"🐈"_emoji };
+    const Texture emoji{ U"🐈"_emoji };
 
     // 絵文字を描画する座標 | Coordinates of the emoji
-    g_emojiPos = Vec2{ 300, 150 };
-
-    return true;
-}
-
-void Main()
-{
-    // 初期化関数を呼び出し
-    Init();
+    Vec2 emojiPos{ 300, 150 };
 
     // テキストを画面にデバッグ出力 | Print a text
     Print << U"Push [A] key";
@@ -50,13 +32,13 @@ void Main()
     while (System::Update())
     {
         // テクスチャを描く | Draw a texture
-        g_texture->draw(200, 200);
+        texture.draw(200, 200);
 
         // テキストを画面の中心に描く | Put a text in the middle of the screen
-        (*g_font)(U"Hello, Siv3D!🚀").drawAt(Scene::Center(), Palette::Black);
+        font(U"Hello, Siv3D!🚀").drawAt(Scene::Center(), Palette::Black);
 
         // サイズをアニメーションさせて絵文字を描く | Draw a texture with animated size
-        g_emoji->resized(100 + Periodic::Sine0_1(1s) * 20).drawAt(g_emojiPos);
+        emoji.resized(100 + Periodic::Sine0_1(1s) * 20).drawAt(emojiPos);
 
         // マウスカーソルに追随する半透明な円を描く | Draw a red transparent circle that follows the mouse cursor
         Circle{ Cursor::Pos(), 40 }.draw(ColorF{ 1, 0, 0, 0.5 });
@@ -73,7 +55,7 @@ void Main()
         {
             // 画面内のランダムな場所に座標を移動
             // Move the coordinates to a random position in the screen
-            g_emojiPos = RandomVec2(Scene::Rect());
+            emojiPos = RandomVec2(Scene::Rect());
         }
     }
 }

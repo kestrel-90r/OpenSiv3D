@@ -79,7 +79,8 @@ namespace s3d
     bool CMouse::down(const uint32 index) const
     {
         assert(index < InputState::MouseButtonCount);
-        return m_states[index].down;
+        bool result = m_states[index].down;
+        return result;
     }
 
     bool CMouse::pressed(const uint32 index) const
@@ -153,11 +154,11 @@ namespace s3d
         onMouseButtonUpdated(0, pressed);
     }
 
-    // 名前を変更した新しいメソッド
     void CMouse::updateButtonDown(uint32 index)
     {
         if (index >= InputState::MouseButtonCount)
         {
+            LOG_ERROR(U"CMouse::updateButtonDown: invalid index {}"_fmt(index));
             return;
         }
         
@@ -173,6 +174,7 @@ namespace s3d
     {
         if (index >= InputState::MouseButtonCount)
         {
+            LOG_ERROR(U"CMouse::updateButtonUp: invalid index {}"_fmt(index));
             return;
         }
         

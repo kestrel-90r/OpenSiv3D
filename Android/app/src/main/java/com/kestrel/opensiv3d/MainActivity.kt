@@ -218,19 +218,10 @@ class MainActivity : GameActivity() {
     /// @param y Y座標
     private external fun onCursorUpdateNative(x: Int, y: Int)
     
-    // カメラ（AGDK互換）
-//    private external fun startNdkCamera(): Boolean
-//    private external fun stopNdkCamera(): Boolean
-//    private external fun onCameraFrame(
-//        yBuffer: java.nio.ByteBuffer, 
-//        uBuffer: java.nio.ByteBuffer, 
-//        vBuffer: java.nio.ByteBuffer,
-//        yRowStride: Int, 
-//        uvRowStride: Int, 
-//        uvPixelStride: Int, 
-//        width: Int, 
-//        height: Int
-//    )
+    /// @brief BTマウスボタン状態をネイティブ層に通知します
+    /// @param buttonState ボタン状態
+    private external fun onMouseButtonNative(buttonState: Int)
+
 
     /// @brief アクティビティが最初に作成されるときに呼び出されます
     /// @details ビューの初期化、ネイティブコードの初期化、各種マネージャーの設定を行います
@@ -614,10 +605,7 @@ class MainActivity : GameActivity() {
     /// @param event タッチイベントオブジェクト
     /// @return イベントを処理した場合はtrue
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        // イベントタイプを取得
         val actionMasked = event.actionMasked
-        
-        // アクションタイプをSiv3D定数に変換
         val action = when(actionMasked) {
             MotionEvent.ACTION_DOWN -> ACTION_DOWN
             MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> ACTION_UP
@@ -631,12 +619,11 @@ class MainActivity : GameActivity() {
         if (actionMasked == MotionEvent.ACTION_MOVE) {
             // すべてのポインターを処理
             for (i in 0 until event.pointerCount) {
-                val id = event.getPointerId(i)
+                val originalId = event.getPointerId(i)
+                val offsetId = originalId + 1  // 0をBTマウス用に予約
                 val x = event.getX(i)
                 val y = event.getY(i)
-                
-                // 各ポインターをJNIに送信
-                onMultiTouchEventNative(ACTION_MOVE, id, x.toInt(), y.toInt())
+                onMultiTouchEventNative(action, offsetId, x.toInt(), y.toInt())
             }
         } else {
             // DOWN/UP イベントの場合は、対象のポインターのみ処理
@@ -648,18 +635,13 @@ class MainActivity : GameActivity() {
                 else -> 0 // ACTION_DOWN, ACTION_UPの場合は常に0
             }
             
-            val pointerId = event.getPointerId(pointerIndex)
+            val originalId = event.getPointerId(pointerIndex)
+            val offsetId = originalId + 1  // 0をBTマウス用に予約
             val x = event.getX(pointerIndex)
             val y = event.getY(pointerIndex)
             
-            // C++側に送信
-            onMultiTouchEventNative(action, pointerId, x.toInt(), y.toInt())
+            onMultiTouchEventNative(action, offsetId, x.toInt(), y.toInt())
         }
-        
-        // 主ポインター（インデックス0）の位置を取得してカーソル更新
-        val x = event.getX(0).toInt()
-        val y = event.getY(0).toInt()
-        onCursorUpdateNative(x, y)
         
         return true
     }
@@ -1185,7 +1167,30 @@ class MainActivity : GameActivity() {
         }
     }
 
+    /// BTマウス/トラックパッド入力を処理
+    override fun onGenericMotionEvent(event: MotionEvent): Boolean {
+        if (event.source and InputDevice.SOURCE_MOUSE == InputDevice.SOURCE_MOUSE) {
+            when (event.action) {
+                MotionEvent.ACTION_HOVER_MOVE -> {
+                    // BTマウスは常に指0として処理
+                    val x = event.x.toInt()
+                    val y = event.y.toInt()
+                    Log.i("BTMouse", "Cursor move: ($x, $y)")
+                    onCursorUpdateNative(x, y)
     
+                    // ID0としてのMOVEイベントも送信（VPadでは無視される）
+                    onMultiTouchEventNative(ACTION_MOVE, 0, x, y)
+                    return true
+                }
+                MotionEvent.ACTION_BUTTON_PRESS,
+                MotionEvent.ACTION_BUTTON_RELEASE -> {
+                    onMouseButtonNative(event.buttonState)
+                    return true
+                }
+            }
+        }
+        return super.onGenericMotionEvent(event)
+    }
 
 
 

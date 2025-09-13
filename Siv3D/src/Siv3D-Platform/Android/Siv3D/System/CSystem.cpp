@@ -58,6 +58,8 @@
 #include <Siv3D/Shader/IShader.hpp>
 #include "CSystem.hpp"
 
+#include <../ThirdParty/Android/VPad.hpp>
+
 extern bool g_isRenderingSuspended;
 extern bool g_isSuspending;
 extern bool g_isAwaitingResume;
@@ -199,6 +201,10 @@ namespace s3d
             SIV3D_ENGINE(Window)->update();
             SIV3D_ENGINE(Renderer)->clear();
             SIV3D_ENGINE(Asset)->update();
+            
+            if (auto* vpad = s3d::VPad::getInstance())
+                vpad->Update();
+
             SIV3D_ENGINE(Cursor)->update();
             SIV3D_ENGINE(Keyboard)->update();
             SIV3D_ENGINE(Mouse)->update();

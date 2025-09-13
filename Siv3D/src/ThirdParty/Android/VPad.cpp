@@ -1,6 +1,7 @@
 #include "VPad.hpp"
 #include <Siv3D/Mouse/IMouse.hpp>
 #include <Siv3D/Mouse/CMouse.hpp>
+#include <Siv3D/Cursor/CCursor.hpp>
 #include <Siv3D/Common/Siv3DEngine.hpp>
 
 namespace s3d
@@ -216,6 +217,20 @@ namespace s3d
         
     }
 
+    void VPad::Draw(double round) const
+    {
+        for (const auto& region : GetRegions())
+        {
+            RectF rect = GetButtonInfo(region.vk).rect;
+            ButtonStyle style = GetButtonStyle(region.vk);
+            bool isActive = IsButtonActive(region.vk);
+            ColorF color = isActive ? style.activeColor : style.inactiveColor;
+            RoundRect rr{rect, round};
+            rr.draw(color);
+            rr.drawFrame(2, ColorF{1.0, 1.0, 1.0, 0.8});
+        }        
+    }
+
     int16 VPad::GetVKeyStatus(int16 vk) const
     {
         auto it = m_vkTouchInfo.find(vk);
@@ -267,6 +282,11 @@ namespace s3d
 
     void VPad::HandleMultiTouchEvent(int32 action, int32 pointerId, float x, float y)
     {
+        if (pointerId == 0)
+        {
+            return;
+        }
+
         Vec2 virtualPos = toVirtualPos(x, y);
 
         switch (action)
@@ -295,43 +315,46 @@ namespace s3d
                             it->second.firstTouchTime = pointer.touchStartTime;
                         }
                     }
-                }
-                assignPointerToAnalogStick(pointerId, pointer);
+                	assignPointerToAnalogStick(pointerId, pointer);
             }
-            break;
-
-            case AMOTION_EVENT_ACTION_UP:
-            case AMOTION_EVENT_ACTION_POINTER_UP:
+            else
             {
-                auto it = m_activePointers.find(pointerId);
-                if (it != m_activePointers.end())
-                {
-                    const PointerInfo &pointer = it->second;
-                    if (pointer.currentVK != VKNONE)
-                    {
-                        auto vkIt = m_vkTouchInfo.find(pointer.currentVK);
-                        if (vkIt != m_vkTouchInfo.end())
-                        {
-                            vkIt->second.touchingPointers.erase(pointerId);
-                        }
-                    }
-                    unassignPointerFromAnalogStick(pointerId);
-                    m_activePointers.erase(it);
-                }
+                forwardTouchToCursor(pointerId, x, y);
             }
-            break;
+        }
+        break;
 
-            case AMOTION_EVENT_ACTION_MOVE:
+        case AMOTION_EVENT_ACTION_MOVE:
+        {
+            // 全てのアクティブポインターの処理（MainActivityから渡されるのは1つずつ）
+            auto it = m_activePointers.find(pointerId);
+            if (it != m_activePointers.end())
             {
-                auto it = m_activePointers.find(pointerId);
-                if (it != m_activePointers.end())
+                PointerInfo& currentPointer = it->second;
+                
+                // デバッグログ
+                __android_log_print(ANDROID_LOG_INFO, "VPad", "MOVE: pointerId=%d, startVK=%d, currentVK=%d", 
+                                   pointerId, currentPointer.startVK, currentPointer.currentVK);
+                
+                // 初期タッチ時の担当で判定（startVKで判定）
+                if (currentPointer.startVK == VKNONE)
                 {
-                    PointerInfo& currentPointer = it->second;
+                    __android_log_print(ANDROID_LOG_INFO, "VPad", "Cursor MOVE: pointerId=%d", pointerId);
+                    // Cursor担当ポインター - 移動量をCCursorに転送
+                    forwardTouchMoveToCursor(pointerId, x, y);
+                    currentPointer.x = x;
+                    currentPointer.y = y;
+                }
+                else
+                {
+                    __android_log_print(ANDROID_LOG_INFO, "VPad", "VPad MOVE: pointerId=%d", pointerId);
+                    // VPad担当ポインター - 既存のVPad処理
                     const int16 oldVK = currentPointer.currentVK;
                     
                     currentPointer.x = x;
                     currentPointer.y = y;
                     
+                    // 既存のVPad MOVEロジック...
                     bool isAnalogStickPointer = false;
                     for (auto& pair : m_analogSticks)
                     {
@@ -388,19 +411,61 @@ namespace s3d
                     }
                 }
             }
-            break;
+        }
+        break;
 
-            case AMOTION_EVENT_ACTION_CANCEL:
-                m_activePointers.clear();
-                for (auto &pair : m_vkTouchInfo)
+
+        case AMOTION_EVENT_ACTION_UP:
+        case AMOTION_EVENT_ACTION_POINTER_UP:
+        {
+            auto it = m_activePointers.find(pointerId);
+            if (it != m_activePointers.end())
+            {
+                const PointerInfo &pointer = it->second;
+                
+                if (pointer.startVK == VKNONE)
                 {
-                    pair.second.touchingPointers.clear();
+                    // Cursor担当ポインター - 終了をCCursorに通知
+                    forwardTouchEndToCursor(pointerId);
                 }
-                for (auto &pair : m_analogSticks)
+                else
                 {
-                    pair.second.active = false;
-                    pair.second.assignedPointerId = -1;
+                    // VPad担当ポインター
+	                if (pointer.currentVK != VKNONE)
+	                {
+	                    auto vkIt = m_vkTouchInfo.find(pointer.currentVK);
+	                    if (vkIt != m_vkTouchInfo.end())
+	                    {
+	                        vkIt->second.touchingPointers.erase(pointerId);
+	                    }
+	                }
+	                unassignPointerFromAnalogStick(pointerId);
+				}
+                m_activePointers.erase(it);
+            }
+        }
+        break;
+
+
+        case AMOTION_EVENT_ACTION_CANCEL:
+            // 全てキャンセル
+            for (auto& pair : m_activePointers)
+            {
+                if (pair.second.startVK == VKNONE)
+                {
+                    forwardTouchEndToCursor(pair.first);
                 }
+            }
+            m_activePointers.clear();
+            for (auto &pair : m_vkTouchInfo)
+            {
+                pair.second.touchingPointers.clear();
+            }
+            for (auto &pair : m_analogSticks)
+            {
+                pair.second.active = false;
+                pair.second.assignedPointerId = -1;
+            }
             break;
         }
     }
@@ -878,8 +943,8 @@ namespace s3d
             case VKBTNL:  return ButtonStyle{U"ML", ColorF{0.9, 0.3, 0.3, 0.8}, ColorF{0.4, 0.1, 0.1, 0.5}};
             case VKBTNM:  return ButtonStyle{U"MM", ColorF{0.3, 0.9, 0.3, 0.8}, ColorF{0.1, 0.4, 0.1, 0.5}};
             case VKBTNR:  return ButtonStyle{U"MR", ColorF{0.3, 0.3, 0.9, 0.8}, ColorF{0.1, 0.1, 0.4, 0.5}};
-            case VK_START: return ButtonStyle{U"START", ColorF{0.7, 0.7, 0.7, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5}};
-            case VKSELECT: return ButtonStyle{U"SELECT", ColorF{0.7, 0.7, 0.7, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5}};
+            case VK_START:return ButtonStyle{U"START", ColorF{0.7, 0.7, 0.7, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5}};
+            case VKSELECT:return ButtonStyle{U"SELECT", ColorF{0.7, 0.7, 0.7, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5}};
             default:      return ButtonStyle{U"BTN", ColorF{0.7, 0.7, 0.7, 0.8}, ColorF{0.3, 0.3, 0.3, 0.5}};
         }
         return style;
@@ -893,6 +958,72 @@ namespace s3d
     bool VPad::IsButtonActive(int16 vk) const
     {
         return GetVKeyStatus(vk) != VKOFF;
+    }
+
+    void VPad::forwardTouchToCursor(int32 pointerId, float x, float y)
+    {
+        auto it = m_activePointers.find(pointerId);
+        if (it != m_activePointers.end() && it->second.startVK != VKNONE)
+        {
+            return;
+        }
+        
+        if (isFirstCursorPointer(pointerId))
+        {
+            auto *cursor = dynamic_cast<CCursor *>(SIV3D_ENGINE(Cursor));
+            if (cursor)
+            {
+                cursor->setPos(Point{static_cast<int>(x), static_cast<int>(y)});
+            }
+        }
+    }
+
+    void VPad::forwardTouchMoveToCursor(int32 pointerId, float x, float y)
+    {
+        auto it = m_activePointers.find(pointerId);
+        if (it != m_activePointers.end() && it->second.startVK != VKNONE)
+        {
+            return;
+        }
+        
+        if (isFirstCursorPointer(pointerId))
+        {
+            auto *cursor = dynamic_cast<CCursor *>(SIV3D_ENGINE(Cursor));
+            if (cursor)
+            {
+                cursor->setPos(Point{static_cast<int>(x), static_cast<int>(y)});
+            }
+        }
+    }
+
+    void VPad::forwardTouchEndToCursor(int32 pointerId)
+    {
+        auto it = m_activePointers.find(pointerId);
+        if (it != m_activePointers.end() && it->second.startVK != VKNONE)
+        {
+            return;
+        }
+    }
+
+    bool VPad::isFirstCursorPointer(int32 pointerId) const
+    {
+        __android_log_print(ANDROID_LOG_INFO, "VPad", "isFirstCursorPointer: checking pointerId=%d", pointerId);
+        
+        auto checkIt = m_activePointers.find(pointerId);
+        if (checkIt != m_activePointers.end() && checkIt->second.startVK != VKNONE)
+        {
+            return false;
+        }
+        
+        for (const auto& pair : m_activePointers)
+        {
+            if (pair.second.startVK == VKNONE)
+            {
+                bool result = (pair.first == pointerId);
+                return result;
+            }
+        }
+        return false;
     }
 
 }
